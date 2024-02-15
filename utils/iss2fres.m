@@ -25,7 +25,7 @@ else
 
 	% Calculate frequency resolution on the basis of spectral integral of logdet|S| = logdet|V|
 
-	assert(isvector(siparms) && length(siparms) == 3,'Spetral integration parameters must be a 3-vector [tolerance, fres pow2 min, fres pow2 max]');
+	assert(isvector(siparms) && length(siparms) == 3,'Spectral integration parameters must be a 3-vector [tolerance, fres pow2 min, fres pow2 max]');
 
 	tol     = siparms(1);
 	minpow2 = siparms(2);
@@ -33,7 +33,7 @@ else
 
 	L = chol(V,'lower');
 	LDV = 2*sum(log(diag(L)));
-	failed = true;
+	success = false;
 	for frpow2 = minpow2:maxpow2
 		fres = 2^frpow2;
 		H = ss2trfun(A,C,K,fres);
@@ -44,10 +44,7 @@ else
 		end
 		ILDS = sum(LDS(1:end-1)+LDS(2:end))/fres; % integrate frequency-domain logdet(S)
 		diff = abs(ILDS-LDV);
-		if diff <= tol
-			failed = false;
-			break;
-		end
+		if diff <= tol,	success = true; break; end
 	end
-	if failed, fres = NaN; end
+	if ~success, fres = NaN; end
 end
