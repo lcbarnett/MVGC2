@@ -1,5 +1,7 @@
 function [fres,frpow2,diff] = iss2fres(A,C,K,V,siparms)
 
+% FIXME (see var2fres.m)
+
 acfres = nargin < 5 || isempty(siparms);
 
 if acfres

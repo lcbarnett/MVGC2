@@ -1,4 +1,4 @@
-function [fres,ierr] = var2fres(A,V,fastm,siparms)
+function [fres,ierr,frpow2] = var2fres(A,V,fastm,siparms)
 
 if nargin < 2, V = []; end
 if nargin < 3 || isempty(fastm),   fastm   = false;        end
@@ -31,16 +31,13 @@ else
 
 	% Calculate frequency resolution on the basis of spectral integral of logdet|S| = logdet|V|
 
-	failed = true;
+	success = false;
 	for frpow2 = minpow2:maxpow2
 		fres = 2^frpow2;
 		ierr = var_check_fres(A,V,fres);
-		if ierr <= tol
-			failed = false;
-			break;
-		end
+		if ierr <= tol, success = true; break; end
 	end
-	if failed
+	if ~success
 		fprintf(2,'WARNING: Frequency resolution > 2^%d - defaulting to 2^%d\n',maxpow2,maxpow2);
 	end
 
