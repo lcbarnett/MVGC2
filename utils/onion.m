@@ -3,10 +3,10 @@ function R = onion(n,eta,Rmean)
 if nargin < 2 || isempty(eta),   eta   = 1;     end % default is uniform
 if nargin < 3 || isempty(Rmean), Rmean = false; end % return mean |R|
 
-if Rmean > 0 % return theoretical mean of |R|
+if Rmean % return theoretical mean multiinfo = -log|R|
 	nn = 1:n-1;
 	f = 2*eta(:)+nn;
-	R = exp(sum(nn.*(log(f-1)-log(f)),2));
+	R = -sum(nn.*(log(f-1)-log(f)),2);
 	return
 end
 

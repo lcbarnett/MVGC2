@@ -13,8 +13,8 @@ function [R,L,grerr,retries,iters] = corr_rand(n,g,vexp,tol,maxretries)
 % If g is not supplied (or is empty) a correlation matrix is sampled uniformly
 % at random over the space of n x n correlation matrices using the "onion"
 % algorithm. If g is zero, the identity matrix is returned. If g is negative,
-% it is interpreted as the "correlation" rho = sqrt(1-exp(-(2/n)*g)) and is
-% converted to the multi-information g = -(n/2)*log(1-rho^2).
+% then -g is taken as a factor applied to the mean multi-information of a
+% uniform random sampling of the space of correlation matrices.
 %
 % NOTE: if you want a covariance matrix with standard deviations in the (column)
 % vector s, then use V = s.*R.*s', or L -> s.*L
@@ -61,8 +61,8 @@ if g < eps && g > -eps % effectively zero
 	return
 end
 
-if g < 0 % g is minus the "correlation" rho = sqrt(1-exp((2/n)*g))
-	g = -(n/2)*log(1-g*g);
+if g < 0 % g is a factor applied to the mean multi-information of a uniform sampling of correlation matrices
+	g = -g*onion(n,[],true);
 end
 
 % We calcluate a (positive-definite) covariance matrix with given generalised
