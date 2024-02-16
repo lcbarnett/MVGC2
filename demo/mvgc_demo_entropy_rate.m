@@ -147,8 +147,8 @@ end
 % If not specified, estimate a reasonable frequency resolution for spectral entropy rate
 
 if isempty(fres)
-	ptic('\n*** iss2fres... ');
-	[fres,frpow2,frierr] = iss2fres(A,C,K,V);
+	ptic('\n*** ss2fres... ');
+	[fres,frierr,frpow2] = ss2fres(A,C,K,V);
 	ptoc;
 	fprintf('\nUsing frequency resolution %d = 2^%d (integration error = %.2e)\n',fres,frpow2,frierr);
 end

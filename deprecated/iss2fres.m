@@ -1,4 +1,4 @@
-function [fres,ierr,frpow2] = ss2fres(A,C,K,V,fastm,siparms)
+function [fres,ierr,frpow2] = iss2fres(A,C,K,V,fastm,siparms)
 
 if nargin < 4, V = []; end
 if nargin < 5 || isempty(fastm),   fastm   = false;        end

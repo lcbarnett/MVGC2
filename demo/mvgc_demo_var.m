@@ -164,11 +164,14 @@ plot_gc(pdata,ptitle,[],maxp,plotm,[0.6,2.5]);
 % If not specified, we set the frequency resolution to something sensible.
 
 if isempty(fres)
-	[fres,fabserr] = var2fres(A,V);
+	ptic('\n*** var2fres... ');
+	[fres,frierr,frpow2] = var2fres(A,V);
+	ptoc;
+	fprintf('\nUsing frequency resolution %d = 2^%d (integration error = %.2e)\n',fres,frpow2,frierr);
 else
-	fabserr = var_check_fres(A,V,fres);
+	frierr = var_check_fres(A,V,fres);
+	fprintf('\nUsing frequency resolution %d (integration error = %.2e)\n',fres,frierr);
 end
-fprintf('\nUsing frequency resolution %d (absolute integration error = %e)\n',fres,fabserr);
 
 ptic(sprintf('\n*** var_to_spwcgc (at frequency resolution = %d)... ',fres));
 f = var_to_spwcgc(A,V,fres);

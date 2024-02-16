@@ -143,17 +143,14 @@ plot_gc({FF,F},{'PWCGC (actual)','PWCGC (estimated)'},[],[maxF maxF],plotm);
 % sensible. Warn if resolution is very large, as this may cause problems.
 
 if isempty(fres)
-	maxfres = 2^14; % adjust to taste
-	fres = max(info.fres,infoo.fres);
-	if fres > maxfres
-		fprintf(2,'\nWARNING: esitmated frequency resolution %d exceeds maximum; setting to %d' ,fres,maxfres);
-		fres = maxfres;
-	else
-		fprintf('\nUsing frequency resolution %d',fres);
-	end
+	ptic('\n*** ss2fres... ');
+	[fres,frierr,frpow2] = ss2fres(A,C,K,V);
+	ptoc;
+	fprintf('\nUsing frequency resolution %d = 2^%d (integration error = %.2e)\n',fres,frpow2,frierr);
+else
+	frierr = ss_check_fres(A,C,K,V,fres);
+	fprintf('\nUsing frequency resolution %d (integration error = %.2e)\n',fres,frierr);
 end
-fabserr = ss_check_fres(A,C,K,V,fres);
-fprintf(' (absolute integration error = %e)\n',fabserr);
 
 ptic(sprintf('\n*** ss_to_spwcgc (at frequency resolution = %d)... ',fres));
 f = ss_to_spwcgc(A,C,K,V,fres);
