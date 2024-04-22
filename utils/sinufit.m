@@ -2,23 +2,23 @@
 %
 % INVOCATION
 %
-% [ffit,f] = sinufit(x,fs,f,fftol,verb)
+% ffit = sinufit(x,fs,f,fftol,verb)
 %
-% mse  = sinufit(x,fs,f,'mse')
+% mse  = sinufit(x,fs,f,'MSE')
 %
 % INPUTS
 %
 % x         matrix of time-series values (variables x observations)
 % fs        sampling frequency (default: angular frequency in range 0 ... 2*pi)
-% f         frequency range: scalar or column vector (automatic), or 2-column vector/matrix specifying explicit bounds
-% fftol     frequency fit tolerance (default: 1e-6)
+% f         for the first form, a 2-column matrix - each row specifies a fit frequency range; for
+%           the second 'MSE' option, a vector of frequencies at which the MSE will be calculated.
+% fftol     frequency fit tolerance (default: 1e-8)
 % verb      verbosity
 %
 % OUTPUTS
 %
 % ffit      fitted frequency
-% mse       the MSE over the frequency range
-% f         actual frequency range used
+% mse       the MSE at the supplied frequencies
 %
 % NOTE      If calculating the optimal frequency in a range, the range should be
 %           small enough that the MSE is approximately "U-shaped" within that
@@ -30,32 +30,26 @@
 %
 %%
 
-function [retval,f] = sinufit(x,fs,f,fftol,verb)
+function retval = sinufit(x,fs,f,fftol,verb)
 
-if nargin < 2 || isempty(fs), fs = 2*pi; end % If no sampling frequency supplied assume angular frequency.
+if isempty(fs), fs = 2*pi; end % If no sampling frequency supplied assume angular frequency.
 
-cmse = nargin > 3 && ischar(fftol) && strcmpi(fftol,'mse');
+cmse = nargin > 3 && ischar(fftol) && strcmpi(fftol,'MSE');
 
 assert(ismatrix(x),'Time series must be a matrix');
-[n,m] = size(x);
+[n,m] = size(x); % n = number of variables, m = number of observations
 
 if cmse
-	assert(nargin == 4,'Too many input arguments for ''mse'' option');
-	assert(nargout < 2,'Too many output arguments for ''mse'' option');
-	assert(isvector(f),'For ''mse'' option, a vector of frequencies must be supplied');
+	assert(nargin == 4,'Too many input arguments for ''MSE'' option');
+	assert(nargout < 2,'Too many output arguments for ''MSE'' option');
+	assert(isvector(f),'For ''MSE'' option, a vector of frequencies must be supplied');
 	f = f(:); % ensure column vector
 else
 	assert(nargin > 2,'Too few input arguments');
-	if nargin < 4 || isempty(fftol), fftol = 1e-6;  end % Default tolerance for 'fminbnd' frequency fit
+	if nargin < 4 || isempty(fftol), fftol = 1e-8;  end % Default tolerance for 'fminbnd' frequency fit
 	if nargin < 5 || isempty(verb),  verb  = false; end % Verbosity (if set, print 'fminbnd' diagnostics)
-	if isscalar(f) || iscolumn(f)
-		f = f + 10*[-1,1]*(fs/m);  % a reasonable default width
-	elseif isrow(f)
-		% do nothing
-	else
-		assert(ismatrix(f) && size(f,2) == 2,'Fit frequencies must be a scalar, column vector, or two-column matrix');
-		assert(all(f(:,2) > f(:,1)),'Fit frequencies must be ascending');
-	end
+	assert(ismatrix(f) && size(f,2) == 2,'Fit frequencies must be a two-column matrix');
+	assert(all(f(:,2) > f(:,1)),'Frequencies range bounds must be ascending');
 end
 %assert(all(f(:) > eps & f(:) <= fs/2),'Frequencies must lie in range (0 .. Nyqvist]');
 nf = size(f,1);
@@ -77,9 +71,8 @@ else
 		os = optimset('TolX',fftol);
 	end
 	retval = nan(nf,1);
-	mse    = nan(nf,1);
 	for k = 1:nf
-		[wfit,mse(k),exitflag] = fminbnd(@MSE,w(k,1),w(k,2),os); % find wfit which minimises the MSE
+		[wfit,~,exitflag] = fminbnd(@MSE,w(k,1),w(k,2),os); % find wfit which minimises the MSE
 		if exitflag == 1,
 			retval(k) = fs*wfit/(2*pi); % fit frequency (convert back to ordinary frequency)
 		end
@@ -93,12 +86,12 @@ end
 
     function mse = MSE(ww)
 
-	W    = (sin(ww*m)/sin(ww))/m;
-	u    = W*cos(ww*(m-1));
-	v    = W*sin(ww*(m-1));
-	xc   = mean(x.*cos(ww*t),2);
-	xs   = mean(x.*sin(ww*t),2);
-	mse  = -2*sum((1-u)*xc.*xc-2*v*xc.*xs+(1+u)*xs.*xs)/(1-W*W); % -sum(p*xi+q*eta)
+		W    = (sin(ww*m)/sin(ww))/m;
+		u    = W*cos(ww*(m-1));
+		v    = W*sin(ww*(m-1));
+		xc   = mean(x.*cos(ww*t),2);
+		xs   = mean(x.*sin(ww*t),2);
+		mse  = -2*sum((1-u)*xc.*xc-2*v*xc.*xs+(1+u)*xs.*xs)/(1-W*W); % -sum(p*xi+q*eta)
 
     end % function MSE
 
