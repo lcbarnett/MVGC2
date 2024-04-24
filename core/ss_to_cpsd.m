@@ -1,4 +1,6 @@
-function [S,H] = ss_to_cpsd(A,C,K,V,fres)
+function [S,H] = ss_to_cpsd(A,C,K,V,fres,autospec)
+
+if nargin < 6 || isempty(autospec), autospec = false; end
 
 [n,r,L] = ss_parms(A,C,K,V);
 
@@ -19,4 +21,12 @@ else
 		HLk      = (In + C*((w(k)*Ir-A)\K))*L;
 		S(:,:,k) = HLk*HLk';
 	end
+end
+
+s = zeros(n,h);
+if autospec
+	for k = 1:h % over [0,pi]
+		s(:,k) = diag(S(:,:,k));
+	end
+	S = s';
 end
