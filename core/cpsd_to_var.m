@@ -6,7 +6,7 @@
 %
 %% Syntax
 %
-%     [H,V,iters] = cpsd_specfac(S,G0,maxiters,numtol)
+%     [H,V,converged,iters,mre] = cpsd_to_var(S,maxiters,numtol,verb)
 %
 %% Arguments
 %
@@ -25,7 +25,7 @@
 %     V          VAR residuals covartiance matrix
 %     converged  Boolean flag to indicate whether the process converged to the specified tolerance
 %     iters      number of iterations performed
-%     mre        maximum relatabsolute elemnt-wise error of factored CPSD with respect to supplied CPSD
+%     mre        maximum relative error of factored CPSD with respect to supplied CPSD
 %
 %% Description
 %
@@ -77,7 +77,7 @@
 %
 %%
 
-function [H,V,converged,iters,mre] = cpsd_to_var_old(S,maxiters,numtol,verb)
+function [H,V,converged,iters,mre] = cpsd_to_var(S,maxiters,numtol,verb)
 
 if nargin < 3 || isempty(numtol),   numtol   = 1e-9; end
 if nargin < 2 || isempty(maxiters), maxiters = min(500,floor(sqrt(10/numtol))); end
