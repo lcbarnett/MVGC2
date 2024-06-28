@@ -56,7 +56,7 @@ end
 broadband = isempty(fbands); % return entropy rate at every frequency (at resolution fres) from 0 - Nyqvist
 
 if broadband
-	fprintf('\nBroadband: 0-%g Hz\n',fs/2);
+%	fprintf('\nBroadband: 0-%g Hz\n',fs/2);
 else
 
 	% Sort out frequency bands specification
@@ -84,15 +84,15 @@ else
 		fbands(nbb+1,:) = [fb(nbb) fs/2]; % up to Nyqvist frequency
 	end
 	nfbands = size(fbands,1);
-	fprintf('\nFrequency bands (Hz):\n');
-	disp(fbands);
+%	fprintf('\nFrequency bands (Hz):\n');
+%	disp(fbands);
 end
 
 % Sort out ROIs
 
 nchans = size(V,1);
 if ischar(rois) && strcmpi(rois,'allchans')    % all channels as a single ROI
-	roi = {1:nchans};
+	rois = {1:nchans};
 	perchan = false;
 	nrois = 1;
 elseif ischar(rois) && strcmpi(rois,'perchan') % each channel as an ROI
@@ -101,7 +101,6 @@ elseif ischar(rois) && strcmpi(rois,'perchan') % each channel as an ROI
 else
 	assert(isvector(rois) && iscell(rois),'ROI spec must be ''allchans'', ''perchan'', or a cell vector');
 	perchan = false;
-	roi = rois;
 	nrois = length(rois);
 end
 
@@ -126,7 +125,7 @@ if perchan
 	end
 else
 	for r = 1:nrois
-		Sr = S(roi{r},roi{r},:);
+		Sr = S(rois{r},rois{r},:);
 		for k = 1:h
 			LDS(k,r) = logdet(Sr(:,:,k));
 		end
@@ -145,6 +144,6 @@ else
 			erates(b,r) =  bandlimit(LDS(:,r),[],fs,fbands(b,:));
 		end
 	end
-	fprintf('\nEntropy rates:\n');
-	disp(erates);
+%	fprintf('\nEntropy rates:\n');
+%	disp(erates);
 end

@@ -16,7 +16,7 @@ function [R,p,pval] = cov2corr(V,N)
 % N - sample size (number of data observations)
 
 n = size(V,1);
-assert(issymmetric(V),'Covariance matrix must be square symmetric');
+assert(ishermitian(V),'Covariance matrix must be square symmetric');
 
 R  = NaN(n);
 pval = NaN(n);
