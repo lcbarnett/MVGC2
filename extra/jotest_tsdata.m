@@ -2,6 +2,9 @@ function stats = jotest_tsdata(y,p,normevs)
 
 % Calculate VECM Johansen Test statistics from multitrial time-series data
 %
+% This is basically the same as the Matlab 'jcitest' (econ. Toolbox), but
+% accommodates multi-trial data, and works for n > 12.
+%
 % NOTE: p is the VAR, not VECM autoregressive order!
 
 if nargin < 3 || isempty(normevs), normevs = true; end % normalise eigenvectors?
@@ -54,9 +57,9 @@ loglam = log(1-lam);
 
 % Statistical results
 
-stats.ess   =  Te; % effective sample size
-stats.evals =  lam;
-stats.A     =  S01*V;
-stats.B     =  V;
-stats.me    = -loglam;                         % scale by effective sample size for inference
-stats.tr    = -flipud(cumsum(flipud(loglam))); % scale by effective sample size for inference
+stats.ess =  Te; % effective sample size
+stats.evs =  lam;
+stats.A   =  S01*V;
+stats.B   =  V;
+stats.me  = -loglam;                         % scale by effective sample size for inference
+stats.tr  = -flipud(cumsum(flipud(loglam))); % scale by effective sample size for inference
