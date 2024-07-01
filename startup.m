@@ -24,11 +24,9 @@ fprintf('[MVGC2 startup] Initialising MVGC2 toolbox\n');
 
 if isempty(dir('config.m'))
 	fprintf('[MVGC2 startup] Setting default configuration options\n');
-disp('no config')
 	config_default;
 else
 	fprintf('[MVGC2 startup] Setting user configuration options\n');
-disp('config')
 	config;
 end
 
