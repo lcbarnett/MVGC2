@@ -1,4 +1,4 @@
-function [erates,fres] = ss2serate(A,C,K,V,fs,fbands,rois,fres)
+function [erates,fres] = ss2serate(A,C,K,V,fs,fbands,rois,fres,normalise)
 
 % Calculate spectral entropy rates for SS model for specified
 % frequency bands and ROIs.
@@ -27,6 +27,12 @@ function [erates,fres] = ss2serate(A,C,K,V,fs,fbands,rois,fres)
 % matic calculation (the default faster method is generally okay,
 % though).
 %
+% If the normalise flag is set to true, then the ISS model is
+% normalised for unit variance. The resulting statistic is then
+% scale-invariant. (In the time domain, normalised rates are
+% equivalent to minus the mutual information between the process
+% and its own past; see ss2erate.m.)
+%
 % Results are returned in the vector erates. In the case that fbands
 % is specified as a vector of band boundaries, 'std1', or 'std2', as
 % a reality check you can test whether sum(erates) == logdet(V) (if
@@ -51,6 +57,14 @@ elseif ischar(fres) && strcmpi(fres,'accest')
 	fastfres = false;
 else
 	assert(isscalar(fres) && isnumeric(fres),'Spectral resolution must empty, ''accest'', or a number');
+end
+
+if nargin < 9 || isempty(normalise)
+	normalise = false;
+end
+
+if normalise
+	[A,C,K,V] = ss_normalise(A,C,K,V);
 end
 
 broadband = isempty(fbands); % return entropy rate at every frequency (at resolution fres) from 0 - Nyqvist
