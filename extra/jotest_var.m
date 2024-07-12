@@ -50,8 +50,8 @@ loglam = log(1-lam);
 
 % Statistical results
 
-stats.evals =  lam;
-stats.A     =  S01*V;
-stats.B     =  V;
-stats.me    = -loglam;                         % scale by effective sample size for inference
-stats.tr    = -flipud(cumsum(flipud(loglam))); % scale by effective sample size for inference
+stats.evs =  lam;
+stats.A   =  S01*V;
+stats.B   =  V;
+stats.me  = -loglam;                         % scale by effective sample size for inference
+stats.tr  = -flipud(cumsum(flipud(loglam))); % scale by effective sample size for inference
