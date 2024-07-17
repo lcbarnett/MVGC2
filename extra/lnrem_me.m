@@ -156,3 +156,15 @@ for hnum = 1:nharms % loop through harmonics
 	end % channel
 
 end % harmonics
+
+function i = findfreq(f,freq) % Return index of value nearest to freq in frequency vector f
+
+	i1 = find(f <= freq,1,'last' );
+	i2 = find(f >= freq,1,'first');
+	if 2*freq <= f(i1)+f(i2)
+		i = i1;
+	else
+		i = i2;
+	end
+
+end
