@@ -49,12 +49,12 @@
 function [A,p] = trfun2var(H,p)
 
 [n,~,h] = size(H);
-fres = h-1;
-if nargin < 2 || isempty(p), p = 2*fres-1; end
-assert(p < 2*fres,'too many lags');
+nfft = 2*(h-1);
+if nargin < 2 || isempty(p), p = h; end
+assert(p < nfft,'too many lags');
 
 I = eye(n);
-AF = zeros(n,n,2*fres); % over [0,2*pi)
+AF = zeros(n,n,nfft); % over [0,2*pi)
 for k = 1:h             % over [0,pi]
     AF(:,:,k) = I/H(:,:,k);
 end
