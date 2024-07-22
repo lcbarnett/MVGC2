@@ -15,7 +15,7 @@
 % _input_
 %
 %     A          VAR coefficients matrix
-%     fres       frequency resolution
+%     fres       frequency resolution (default: calculate automatically)
 %
 % _output_
 %
@@ -49,6 +49,7 @@
 
 function J = var2itrfun(A,fres)
 
-n = size(A,1);
+[n,~,p] = size(A);
+if nargin < 2 || isempty(fres), fres = p; end
 J = fft(cat(3,eye(n),-A),2*fres,3); % over [0,2*pi)
-J = J(:,:,1:(fres+1));              % over [0,pi] only
+J = J(:,:,1:fres+1);              % over [0,pi] only
