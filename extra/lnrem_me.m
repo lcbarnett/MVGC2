@@ -24,6 +24,7 @@ function X = lnrem_me( ...
 	window,  ... % Welch spectral estimation window size (observations)
 	overlap, ... % Welch spectral estimation overlap (observations)
 	nfft,    ... % Number of FFT data points
+	psdfac,  ... % PSD factor (to avoid underflow)
 	ffitr,   ... % frequency fit range (Hz)
 	fftol,   ... % frequency fit tolerance
 	finti,   ... % frequency interpolation interval (Hz)
@@ -43,12 +44,13 @@ if nargin <  5 || isempty(welch),   welch   = true;               end
 if nargin <  6 || isempty(window),  window  = round(nobs/2);      end
 if nargin <  7 || isempty(overlap), overlap = round(window/2);    end
 if nargin <  8 || isempty(nfft),    nfft    = 2^nextpow2(nobs);   end
-if nargin <  9 || isempty(ffitr),   ffitr   = 0.5;                end
-if nargin < 10 || isempty(fftol),   fftol   = 1e-8;               end
-if nargin < 11 || isempty(finti),   finti   = 20;                 end
-if nargin < 12 || isempty(fintig),  fintig  = 1.5;                end
-if nargin < 13 || isempty(bctol),   bctol   = 1e-10;              end
-if nargin < 14 || isempty(bcmaxi),  bcmaxi  = 100;                end
+if nargin <  9 || isempty(psdfac),  psdfac  = 10000;              end
+if nargin < 10 || isempty(ffitr),   ffitr   = 0.5;                end
+if nargin < 11 || isempty(fftol),   fftol   = 1e-8;               end
+if nargin < 12 || isempty(finti),   finti   = 5;                  end
+if nargin < 13 || isempty(fintig),  fintig  = 1.5;                end
+if nargin < 14 || isempty(bctol),   bctol   = 1e-10;              end
+if nargin < 15 || isempty(bcmaxi),  bcmaxi  = 100;                end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -97,16 +99,19 @@ for hnum = 1:nharms % loop through harmonics
 		% Calculate desired channel PSD (interpolate PSD locally by log-log fit)
 
 		if welch
-			psd = mean(pwelch(x,window,overlap,nfft,fs),2);
+			psd = psdfac*mean(pwelch(x,window,overlap,nfft,fs),2);
 		else
-			psd = mean(periodogram(x,[],nfft,'psd',fs),2);
+			psd = psdfac*mean(periodogram(x,[],nfft,'psd',fs),2);
 		end
+		psdact  = psd(iffit);                % channel PSD at line-noise freqency
 		lpsd    = log(psd);                  % log PSD
 		dvar    = lpsd(ireg);                % log-log fit regresee: log PSD in local range
 		regc    = (ivar'*ivar)\(ivar'*dvar); % regression coefficients (OLS)
 		lpsdreg = regc(1)*logf+regc(2);      % regression line (local fit)
 		psdreg  = exp(lpsdreg);              % regression PSD
 		psdfit  = psdreg(iffit);             % channel PSD at line-noise freqency we want (target)
+
+		fprintf('PSD = %8.4f, target = %8.4f : ',psdact,psdfit);
 
 		% Calculate sinusoidal components per epoch, using per-epoch line noise frequencies
 
@@ -132,9 +137,9 @@ for hnum = 1:nharms % loop through harmonics
 			if k > bcmaxi, success = false; break; end % binary chop timed out (shouldn't happen!)
 			y = x-w*s; % channel data with weighted sinusoids subtracted
 			if welch
-				ypsd = mean(pwelch(y,window,overlap,nfft,fs),2);
+				ypsd = psdfac*mean(pwelch(y,window,overlap,nfft,fs),2);
 			else
-				ypsd = mean(periodogram(y,[],nfft,'psd',fs),2);
+				ypsd = psdfac*mean(periodogram(y,[],nfft,'psd',fs),2);
 			end
 			ypsdfit = ypsd(iffit);
 			d = abs(ypsdfit-psdfit);
