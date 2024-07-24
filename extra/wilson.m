@@ -1,4 +1,4 @@
-function [H,V,converged,iters,err,derr] = wilson(S,maxiters,errtol,verb)
+function [H,V,converged,iters,err,derr] = wilson(S,maxiters,errtol,derrtol,verb)
 
 % Alternative version of Wilson's spectral factorisation algorithm (see
 % also cpsd_specfac).
@@ -9,12 +9,15 @@ function [H,V,converged,iters,err,derr] = wilson(S,maxiters,errtol,verb)
 % Reference: G. T. Wilson, The Factorization of Matricial Spectral
 % Densities, SIAM J. Appl. Math, Vol. 23(4), pp 420-426, 1972.
 
-if nargin < 2 || isempty(maxiters), maxiters = 100;  end
-if nargin < 3 || isempty(errtol),   errtol   = 1e-9; end
-if nargin < 4 || isempty(verb),     verb     = 0;    end
+if nargin < 2 || isempty(maxiters), maxiters = 100;        end
+if nargin < 3 || isempty(errtol),   errtol   = 1e-8;       end
+if nargin < 4 || isempty(derrtol),  derrtol  = eps;        end
+if nargin < 5 || isempty(verb),     verb     = false;      end
 
 [n,~,h] = size(S);
 h2 = 2*(h-1);
+
+MAS = max(abs(S(:)));
 
 SX = cat(3,S,conj(S(:,:,h-1:-1:2))); % extend CPSD
 
@@ -38,6 +41,7 @@ g = zeros(n,n,h2);
 SF = zeros(n,n,h);
 
 err = Inf;
+converged = 0;
 for iters = 1:maxiters
 
     if verb, fprintf('iteration %3d ...',iters); end
@@ -69,34 +73,30 @@ for iters = 1:maxiters
 		SF(:,:,i) = P(:,:,i)*P(:,:,i)';
 	end
 	olderr = err;
-	err = max(abs(S(:)-SF(:)));
+	err = max(abs(S(:)-SF(:)))/MAS;
 	derr = abs(err-olderr);
 
 	% Check convergence
+	if verb
+		fprintf(' err = %.2e, derr = %.2e',err,derr);
+	end
 	if  err <= errtol
 		converged = 1;
 		if verb
-			fprintf(' converged: err = %.2e, derr = %.2e\n',err,derr);
+			fprintf(' - converged\n');
 		end
 		break
 	end
-	if  derr <= errtol
+	if  derr <= derrtol
 		converged = 2;
 		if verb
-			fprintf(2,' converged: err = %.2e, derr = %.2e - WARNING: tolerance not met\n',err,derr);
-		else
-			fprintf(2,'WARNING: converged in %d iterations, but tolerance not met: err = %.2e, derr = %.2e\n',iters,err,derr);
+			fprintf(' - converged*\n');
 		end
 		break
 	end
-	converged = 0;
 	if verb
-		fprintf(' err = %.2e, derr = %.2e\n',err,derr);
+		fprintf('\n');
 	end
-end
-
-if converged == 0
-	fprintf(2,'WARNING - unconverged (exceeded maximum iterations)\n');
 end
 
 H = zeros(n,n,h);
