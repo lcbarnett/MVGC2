@@ -1,4 +1,4 @@
-function [H,V,converged,iters,err,derr] = wilson(S,maxiters,errtol,derrtol,verb)
+function [H,V,converged,iters,aerr,derr] = wilson(S,maxi,tol,verb)
 
 % Alternative version of Wilson's spectral factorisation algorithm (see
 % also cpsd_specfac).
@@ -9,10 +9,9 @@ function [H,V,converged,iters,err,derr] = wilson(S,maxiters,errtol,derrtol,verb)
 % Reference: G. T. Wilson, The Factorization of Matricial Spectral
 % Densities, SIAM J. Appl. Math, Vol. 23(4), pp 420-426, 1972.
 
-if nargin < 2 || isempty(maxiters), maxiters = 100;        end
-if nargin < 3 || isempty(errtol),   errtol   = 1e-8;       end
-if nargin < 4 || isempty(derrtol),  derrtol  = eps;        end
-if nargin < 5 || isempty(verb),     verb     = false;      end
+if nargin < 2 || isempty(maxi), maxi = 100;   end
+if nargin < 3 || isempty(tol),  tol  = 1e-10; end
+if nargin < 4 || isempty(verb), verb = false; end
 
 [n,~,h] = size(S);
 h2 = 2*(h-1);
@@ -40,9 +39,9 @@ end
 g = zeros(n,n,h2);
 SF = zeros(n,n,h);
 
-err = Inf;
-converged = 0;
-for iters = 1:maxiters
+converged = false;
+aerr = Inf;
+for iters = 1:maxi
 
     if verb, fprintf('iteration %3d ...',iters); end
 
@@ -69,33 +68,30 @@ for iters = 1:maxiters
     P0 = P0*(gp0 + T);
 
     % Calculate error
+    oerr = aerr;
 	for i = 1:h
 		SF(:,:,i) = P(:,:,i)*P(:,:,i)';
 	end
-	olderr = err;
-	err = max(abs(S(:)-SF(:)))/MAS;
-	derr = abs(err-olderr);
+	aerr = max(abs(SF(:)-S (:)))/MAS; % absolute error
+	derr = abs(oerr-aerr);            % error difference
 
 	% Check convergence
 	if verb
-		fprintf(' err = %.2e, derr = %.2e',err,derr);
+		fprintf(' aerr = %.2e, derr = %.2e',aerr,derr);
 	end
-	if  err <= errtol
-		converged = 1;
+	if  derr <= tol
+		converged = true;
 		if verb
 			fprintf(' - converged\n');
 		end
 		break
 	end
-	if  derr <= derrtol
-		converged = 2;
-		if verb
-			fprintf(' - converged*\n');
-		end
-		break
-	end
 	if verb
-		fprintf('\n');
+		if iters == maxi
+			fprintf(' - unconverged (timed out)\n');
+		else
+			fprintf('\n');
+		end
 	end
 end
 
