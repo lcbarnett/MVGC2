@@ -63,9 +63,12 @@ if ~isempty(plotm) % we're going to plot
 	if molrt == p, wlrt = '*'; else wlrt = ''; end
 
 	gap = 0.05;
-	saic = gap+(1-gap)*(aic-min(aic))/(max(aic)-min(aic));
-	sbic = gap+(1-gap)*(bic-min(bic))/(max(bic)-min(bic));
-	shqc = gap+(1-gap)*(hqc-min(hqc))/(max(hqc)-min(hqc));
+	aic1 = aic(2:end);
+	bic1 = bic(2:end);
+	hqc1 = hqc(2:end);
+	saic = gap+(1-gap)*[NaN; aic1-min(aic1)]/(max(aic1)-min(aic1));
+	sbic = gap+(1-gap)*[NaN; bic1-min(bic1)]/(max(bic1)-min(bic1));
+	shqc = gap+(1-gap)*[NaN; hqc1-min(hqc1)]/(max(hqc1)-min(hqc1));
 
 	lmin = eps; lpval = lrpval; lpval(lpval<=0) = lmin;
 
