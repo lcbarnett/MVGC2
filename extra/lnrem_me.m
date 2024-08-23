@@ -16,21 +16,22 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 function X = lnrem_me( ...
-	X,       ... % Time series data: channels x observations x epochs
-	fs,      ... % sampling rate (Hz)
-	lnfreq,  ... % line noise frequency (Hz)
-	nharms,  ... % number of line noise harmonics
-	welch,   ... % Use Welch method (else periodogram)
-	window,  ... % Welch spectral estimation window size (observations)
-	overlap, ... % Welch spectral estimation overlap (observations)
-	nfft,    ... % Number of FFT data points
-	psdfac,  ... % PSD factor (to avoid underflow)
-	ffitr,   ... % frequency fit range (Hz)
-	fftol,   ... % frequency fit tolerance
-	finti,   ... % frequency interpolation interval (Hz)
-	fintig,  ... % frequency interpolation interval gap (Hz)
-	bctol,   ... % binary chop tolerance
-	bcmaxi   ... % binary chop maximum iterations
+	X,        ... % Time series data: channels x observations x epochs
+	fs,       ... % sampling rate (Hz)
+	lnfreq,   ... % line noise frequency (Hz)
+	nharms,   ... % number of line noise harmonics
+	welch,    ... % Use Welch method (else periodogram)
+	nwindow,  ... % Welch spectral estimation window size (observations)
+	noverlap, ... % Welch spectral estimation overlap (observations)
+	wintype,  ... % Welch spectral estimation window type (function handle; e.g., window = @hann)
+	nfft,     ... % Number of FFT data points
+	psdfac,   ... % PSD factor (to avoid underflow)
+	ffitr,    ... % frequency fit range (Hz)
+	fftol,    ... % frequency fit tolerance
+	finti,    ... % frequency interpolation interval (Hz)
+	fintig,   ... % frequency interpolation interval gap (Hz)
+	bctol,    ... % binary chop tolerance
+	bcmaxi    ... % binary chop maximum iterations
 )
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -39,18 +40,19 @@ function X = lnrem_me( ...
 
 % Parameter defaults (X, fs, lnfreq and nharms are mandatory)
 
-if nargin <  4 || isempty(nharms),  nharms  = floor(fs/2/lnfreq); end
-if nargin <  5 || isempty(welch),   welch   = true;               end
-if nargin <  6 || isempty(window),  window  = round(nobs/2);      end
-if nargin <  7 || isempty(overlap), overlap = round(window/2);    end
-if nargin <  8 || isempty(nfft),    nfft    = 2^nextpow2(nobs);   end
-if nargin <  9 || isempty(psdfac),  psdfac  = 10000;              end
-if nargin < 10 || isempty(ffitr),   ffitr   = 0.5;                end
-if nargin < 11 || isempty(fftol),   fftol   = 1e-8;               end
-if nargin < 12 || isempty(finti),   finti   = 5;                  end
-if nargin < 13 || isempty(fintig),  fintig  = 1.5;                end
-if nargin < 14 || isempty(bctol),   bctol   = 1e-10;              end
-if nargin < 15 || isempty(bcmaxi),  bcmaxi  = 100;                end
+if nargin <  4 || isempty(nharms),   nharms   = floor(fs/2/lnfreq); end
+if nargin <  5 || isempty(welch),    welch    = true;               end
+if nargin <  6 || isempty(nwindow),  nwindow  = round(nobs/2);      end
+if nargin <  7 || isempty(noverlap), noverlap = round(nwindow/2);   end
+if nargin <  8 || isempty(wintype),  window   = nwindow;            else, window = wintype(nwindow); end
+if nargin <  9 || isempty(nfft),     nfft     = 2^nextpow2(nobs);   end
+if nargin < 10 || isempty(psdfac),   psdfac   = 10000;              end
+if nargin < 11 || isempty(ffitr),    ffitr    = 0.5;                end
+if nargin < 12 || isempty(fftol),    fftol    = 1e-8;               end
+if nargin < 13 || isempty(finti),    finti    = 5;                  end
+if nargin < 14 || isempty(fintig),   fintig   = 1.5;                end
+if nargin < 15 || isempty(bctol),    bctol    = 1e-10;              end
+if nargin < 16 || isempty(bcmaxi),   bcmaxi   = 100;                end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -99,7 +101,7 @@ for hnum = 1:nharms % loop through harmonics
 		% Calculate desired channel PSD (interpolate PSD locally by log-log fit)
 
 		if welch
-			psd = psdfac*mean(pwelch(x,window,overlap,nfft,fs),2);
+			psd = psdfac*mean(pwelch(x,window,noverlap,nfft,fs),2);
 		else
 			psd = psdfac*mean(periodogram(x,[],nfft,'psd',fs),2);
 		end
@@ -137,7 +139,7 @@ for hnum = 1:nharms % loop through harmonics
 			if k > bcmaxi, success = false; break; end % binary chop timed out (shouldn't happen!)
 			y = x-w*s; % channel data with weighted sinusoids subtracted
 			if welch
-				ypsd = psdfac*mean(pwelch(y,window,overlap,nfft,fs),2);
+				ypsd = psdfac*mean(pwelch(y,window,noverlap,nfft,fs),2);
 			else
 				ypsd = psdfac*mean(periodogram(y,[],nfft,'psd',fs),2);
 			end
