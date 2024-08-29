@@ -2,11 +2,14 @@ function [m,rho] = var_decorrlen(A,V,maxlags,rho,tol)
 
 % Calculate number of lags for autocorrelation to decay to negligible
 
-
 if nargin < 3 || isempty(maxlags) % calculate using VAR spectral norm
 	if nargin < 4 || isempty(rho), rho = specnorm(A); end
-	if nargin < 5 || isempty(tol), tol = eps; end
-	m = ceil((-log(eps)+log(max(abs(eig(V)))))/(-log(rho)));
+	if rho > 1-eps,
+		m = Inf; % unstable!
+	else
+		if nargin < 5 || isempty(tol), tol = eps; end
+		m = ceil((-log(eps)+log(max(abs(eig(V)))))/(-log(rho)));
+	end
 else                              % calculate using VAR autocovariance sequence
 	assert(isscalar(maxlags) && isint(maxlags) && maxlags > 0,'maximum lags parameter must be a positive integer');
 	if nargin < 5, tol = []; end

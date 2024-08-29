@@ -2,13 +2,24 @@ function [X,Z,E,mtrunc] = ss_to_tsdata(A,C,K,V,m,N,mtrunc,decfac)
 
 if nargin < 6 || isempty(N), N = 1; end % single trial
 
-if nargin < 7 || isempty(mtrunc) % automatic calclation - transients decay with rate given by VAR spectral radius
-	rhoa = max(abs(eig(A)));
-	assert(rhoa < 1-eps,'Unstable: can''t auto-truncate');
-	if nargin < 8 || isempty(decfac), decfac = 1; end
-    mtrunc = ceil(decfac*(-log(eps))/(-log(rhoa)));
+if nargin < 7 || isempty(mtrunc) % automatic calculation - transients decay with rate given by VAR spectral radius
+    if nargin < 8 || isempty(decfac)
+		decfac = 1;
+	else
+		assert(isscalar(decfac) && isnumeric(decfac) && decfac >= 0,'for automatic truncation estimation, decay factor must be a positive number');
+	end
+    mtrunc = decfac*var_decorrlen(A,V);
+    assert(~isinf(mtrunc),'unstable - can''t truncate!');
 else
-    assert(isscalar(mtrunc) && isint(mtrunc) && mtrunc >= 0,'truncation parameter must be a non-negative integer');
+	assert(isscalar(mtrunc) && isint(mtrunc),'truncation parameter must be an integer');
+	if mtrunc < 0 % calculate from autocovariance decay, with max lags = -mtrunc, and tolerance in decfac
+		if nargin < 8
+			decfac = [];
+		else
+			assert(isscalar(decfac) && isnumeric(decfac) && decfac >= 0,'for autocovariance truncation estimation, tolerance must be a positive number');
+		end
+		mtrunc = var_decorrlen(A,V,-mtrunc,[],decfac);
+	end
 end
 
 [n,r,L] = ss_parms(A,C,K,V);

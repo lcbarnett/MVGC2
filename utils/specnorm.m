@@ -58,16 +58,7 @@
 
 function [out1,out2] = specnorm(A,newrho)
 
-if isvector(A)
-	p = length(A);
-	p1 = p-1;
-	A1 = [A(:)'; eye(p1) zeros(p1,1)]; % VAR coefficients for 1-lag problem
-else
-	[n,n1,p] = size(A);
-	assert(n1 == n,'VAR/VMA coefficients matrix has bad shape');
-	pn1 = (p-1)*n;
-	A1 = [reshape(A,n,p*n); eye(pn1) zeros(pn1,n)]; % VAR coefficients for 1-lag problem
-end
+A1 = var_companion(A);
 
 % calculate spectral norm
 

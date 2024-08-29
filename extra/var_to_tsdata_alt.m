@@ -36,28 +36,21 @@ end
 
 % VAR parameters for 1-lag problem
 
-A1 = [zeros(pn1,n) eye(pn1); reshape(flip(A,3),n,pn)];
-V1 = [zeros(pn1,pn); zeros(n,pn1) V];
+[A1,V1] = var_companion(A,V);
 
 % Solve Lyapunov equation for 1-lag covariance matrix
 
-try
-    M1 = lyapslv('D',A1,[],-V1); % Don't balance!
-catch except
-    if verb, fprintf(2,'\nERROR: Failed to solve Lyapunov equation: %s\n',except.error); end
-    return
-end
-if verb, fprintf('\nLyapunov equation relative error = %g\n',norm(M1-A1*M1*A1'-V1)/norm(M1)); end
+G1 = dlyap(A1,V1);
 
-[M1SR,cholp] = chol(M1,'lower');
+[G1L,cholp] = chol(G1,'lower');
 if cholp ~= 0
     if verb, fprintf(2,'\nERROR: 1-lag covariance matrix not positive-definite\n'); end
     return
 end
 
-% Initial p values of X have joint covariance matrix M1
+% Initial p values of X have joint covariance matrix G1
 
-X1 = reshape(M1SR*W(1:pn)',n,p);
+X1 = reshape(G1L*W(1:pn)',n,p);
 
 % Generate VAR and truncate first p values
 

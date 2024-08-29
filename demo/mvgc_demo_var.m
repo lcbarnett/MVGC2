@@ -70,7 +70,7 @@ assert(~infoo.error,'VAR error(s) found - bailing out');
 % for generated VAR coefficients and residuals covariance matrix.
 
 ptic('*** var_to_tsdata... ');
-X = var_to_tsdata(AA,VV,nobs,ntrials);
+X = var_to_tsdata(AA,VV,nobs,ntrials,'stationary');
 ptoc;
 
 %%%%%%%%%%%%%%%%%%%%%%%%% VAR modelling %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

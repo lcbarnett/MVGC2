@@ -15,15 +15,14 @@
 
 function [G,q] = var_to_autocov(A,V,qmax,tol)
 
+if isvector(A)
+	A = reshape(A,1,1,length(A));
+end
 [n,~,p] = size(A);
-pn = p*n;
-pn1 = (p-1)*n;
 
 % Associated VAR(1) parameters
 
-A  = reshape(A,n,pn);
-A1 = [A; eye(pn1) zeros(pn1,n)]; % "companion matrix" for A
-V1 = [V zeros(n,pn1); zeros(pn1,n) zeros(pn1)];
+[A1,V1] = var_companion(A,V);
 
 % Solve the Lyapunov equation for the covariance matrix of the associated VAR(1)
 
@@ -44,12 +43,15 @@ end
 
 % Initialise reverse covariance sequence
 
-R = zeros(pn,n);
+R = zeros(p*n,n);
 for k = 1:p
 	R((k-1)*n+1:k*n,:) = G(:,:,p-k+1);
 end
 
 % Calculate autocovariances iteratively
+
+A = reshape(A,n,p*n);
+pn1 = (p-1)*n;
 
 if alags % calculate recursively from p lags up to q lags
 
