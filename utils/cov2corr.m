@@ -24,9 +24,9 @@ pval = NaN(n);
 [R,p] = chol(V); % right Cholesky factor
 if p > 0 % fall back on "safe" method (possibly inaccurate, and doesn't ensure positive-definite result)
 	d = 1./sqrt(diag(V));
-	R = symmetrise(bsxfun(@times,bsxfun(@times,d,V),d'));
+	R = symmetrise(d.*V.*d');
 else      % ensures positive-definite result
-	R = bsxfun(@rdivide,R,sqrt(sum(R.*R)));
+	R = R./sqrt(sum(R.*R));
 	R = R'*R;
 end
 

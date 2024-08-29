@@ -27,9 +27,7 @@ V1 = [V zeros(n,pn1); zeros(pn1,n) zeros(pn1)];
 
 % Solve the Lyapunov equation for the covariance matrix of the associated VAR(1)
 
-size(A1)
 G1 = dlyap(A1,V1);
-done = 1
 
 G = reshape(G1(1:n,:),n,n,p);
 
@@ -62,10 +60,11 @@ if alags % calculate recursively from p lags up to q lags
 	end
 
 else     % calculate recursively from p lags until convergence or maximum lags exceeded
-qmax
-	if nargin < 4 || isempty(tol), tol = eps(maxabs(G(:,:,1))); end
+
+	if nargin < 4 || isempty(tol), tol = eps; end
 	k = p;
-	while maxabs(G(:,:,k)) > tol
+	isqrcov = 1./sqrt(diag(G(:,:,1)));                % inverse square roots of (zero-lag) covariances
+	while max(abs(isqrcov.*G(:,:,k).*isqrcov')) > tol % maximum absolute autocorrelation
 		if k > qmax
 			fprintf(2,'WARNING: covariance sequence failed to converge (increase max. lags?)\n');
 			q = k-1;

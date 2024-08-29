@@ -37,13 +37,7 @@ assert(n1 == n,'autocovariance matrix has bad shape');
 
 R = zeros(n,n,q1);
 d = 1./sqrt(diag(G(:,:,1)));
-for k = 1:q1
-    R(:,:,k) = bsxfun(@times,bsxfun(@times,d,G(:,:,k)),d');
+R(:,:,1) = cov2corr(G(:,:,1)); % ensures positive-definite
+for k = 2:q1
+    R(:,:,k) = d.*G(:,:,k).*d';
 end
-
-%{
-D = diag(1./sqrt(diag(G(:,:,1))));
-for k = 1:q1
-    R(:,:,k) = D*G(:,:,k)*D;
-end
-%}

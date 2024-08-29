@@ -72,7 +72,7 @@ if nargin < 5 || isempty(mtrunc) % automatic calculation - transients decay with
 	else
 		assert(isscalar(decfac) && isnumeric(decfac) && decfac >= 0,'for automatic truncation estimation, decay factor must be a positive number');
 	end
-    mtrunc = decfac*var_autocorr_decay_length(A,V);
+    mtrunc = decfac*var_decorrlen(A,V);
 else
     assert(isscalar(mtrunc) && isint(mtrunc),'truncation parameter must be an integer');
     if mtrunc < 0 % calculate from autocovariance decay, with max lags = -mtrunc, and tolerance in decfac
@@ -81,7 +81,7 @@ else
 		else
 			assert(isscalar(decfac) && isnumeric(decfac) && decfac >= 0,'for autocovariance truncation estimation, tolerance must be a positive number');
 		end
-		mtrunc = var_autocorr_decay_length(A,V,-mtrunc,[],decfac);
+		mtrunc = var_decorrlen(A,V,-mtrunc,[],decfac);
 	end
 end
 
