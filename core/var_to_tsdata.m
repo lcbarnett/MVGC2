@@ -40,7 +40,9 @@
 % spectral radius of |A| (see function <specnorm.html |specnorm|>) is
 % calculated and used to estimate a suitable number |mtrunc| of observations to
 % assumed stationarity (roughly till covariance decays to its stationary value).
-% Set |decfac| > 1 for longer settle time.
+% Set |decfac| > 1 for longer settle time. If mtrunc is negative, then
+% autocovariance decay is utilised, with maximum lags = -mtrunc, and tolerance
+% in decfac.
 %
 %% References
 %
@@ -64,11 +66,23 @@ function [X,E,mtrunc] = var_to_tsdata(A,V,m,N,mtrunc,decfac)
 
 if nargin < 4 || isempty(N), N = 1; end % single trial
 
-if nargin < 5 || isempty(mtrunc) % automatic calclation - transients decay with rate given by VAR spectral radius
-    if nargin < 6 || isempty(decfac), decfac = 1; end
-    mtrunc = ceil(decfac*(-log(eps)+log(max(abs(eig(V)))))/(-log(specnorm(A))));
+if nargin < 5 || isempty(mtrunc) % automatic calculation - transients decay with rate given by VAR spectral radius
+    if nargin < 6 || isempty(decfac)
+		decfac = 1;
+	else
+		assert(isscalar(decfac) && isnumeric(decfac) && decfac >= 0,'for automatic truncation estimation, decay factor must be a positive number');
+	end
+    mtrunc = decfac*var_autocorr_decay_length(A,V);
 else
-    assert(isscalar(mtrunc) && isint(mtrunc) && mtrunc >= 0,'truncation parameter must be a non-negative integer');
+    assert(isscalar(mtrunc) && isint(mtrunc),'truncation parameter must be an integer');
+    if mtrunc < 0 % calculate from autocovariance decay, with max lags = -mtrunc, and tolerance in decfac
+		if nargin < 6
+			decfac = [];
+		else
+			assert(isscalar(decfac) && isnumeric(decfac) && decfac >= 0,'for autocovariance truncation estimation, tolerance must be a positive number');
+		end
+		mtrunc = var_autocorr_decay_length(A,V,-mtrunc,[],decfac);
+	end
 end
 
 [VL,cholp] = chol(V,'lower');
