@@ -1,4 +1,4 @@
-%% var_to_tsdata
+%% var_to_tsdata_old
 %
 % Generate random multi-trial Gaussian VAR time series
 %
@@ -42,8 +42,7 @@
 % assumed stationarity (roughly till autocorrelation decays to its stationary
 % value); set decfac > 1 for longer equilibriation. If mtrunc is negative, then
 % autocovariance decay is utilised, with maximum lags = -mtrunc, and tolerance
-% in decfac. If mtrunc takes the special value 'stationary', the first p values
-% of the time series are generated from the companion VAR(1), and then truncated.
+% in decfac.
 %
 %% References
 %
@@ -63,7 +62,7 @@
 %
 %%
 
-function [X,E,mtrunc] = var_to_tsdata(A,V,m,N,mtrunc,decfac)
+function [X,E,mtrunc] = var_to_tsdata_old(A,V,m,N,mtrunc,decfac)
 
 if isvector(A)
 	A = A(:)';
@@ -86,57 +85,31 @@ if nargin < 5 || isempty(mtrunc) % automatic calculation - transients decay with
     mtrunc = decfac*var_decorrlen(A,V);
     assert(~isinf(mtrunc),'VAR unstable - can''t truncate!');
 else
-	if ischar(mtrunc)
-		assert(strcmpi(mtrunc,'stationary'),'unknown truncation parameter');
-		statts = true;
-		mtrunc = p;
-	else
-		assert(isscalar(mtrunc) && isint(mtrunc),'truncation parameter must be an integer');
-		if mtrunc < 0 % calculate from autocovariance decay, with max lags = -mtrunc, and tolerance in decfac
-			if nargin < 6
-				decfac = [];
-			else
-				assert(isscalar(decfac) && isnumeric(decfac) && decfac >= 0,'for autocovariance truncation estimation, tolerance must be a positive number');
-			end
-			mtrunc = var_decorrlen(A,V,-mtrunc,[],decfac);
+	assert(isscalar(mtrunc) && isint(mtrunc),'truncation parameter must be an integer');
+	if mtrunc < 0 % calculate from autocovariance decay, with max lags = -mtrunc, and tolerance in decfac
+		if nargin < 6
+			decfac = [];
+		else
+			assert(isscalar(decfac) && isnumeric(decfac) && decfac >= 0,'for autocovariance truncation estimation, tolerance must be a positive number');
 		end
+		mtrunc = var_decorrlen(A,V,-mtrunc,[],decfac);
 	end
 end
 
 [VL,cholp] = chol(V,'lower');
 assert(cholp == 0,'covariance matrix not positive-definite');
 
-if statts % generate first p stationary observations
-	[A1,V1] = var_companion(A,V); % associated VAR(1) parameters
-	G1 = dlyap(A1,V1);            % Solve the Lyapunov equation for the covariance matrix of the associated VAR(1)
-	[G1L,cholp] = chol(G1,'lower');
-	assert(cholp == 0,'VAR(1) covariance matrix not positive-definite');
-	pn = p*n;
-	if N > 1
-		E = zeros(n,p+m,N);
-		for r = 1:N
-			E(:,:,r) = [flip(reshape(G1L*randn(pn,1),n,p),2) VL*randn(n,m)];
-		end
-	else
-		E = [flip(reshape(G1L*randn(pn,1),n,p),2) VL*randn(n,m)];
-	end
-else
-	if N > 1 % multi-trial
-		E = zeros(n,mtrunc+m,N);
-		for r = 1:N
-			E(:,:,r) = VL*randn(n,mtrunc+m);
-		end
-	else
-		E = VL*randn(n,mtrunc+m);
-	end
-end
-
 if N > 1 % multi-trial
+	E = zeros(n,mtrunc+m,N);
+	for r = 1:N
+		E(:,:,r) = VL*randn(n,mtrunc+m);
+	end
 	X = zeros(n,mtrunc+m,N);
 	for r = 1:N
 		X(:,:,r) = mvfilter([],A,E(:,:,r));
 	end
 else
+	E = VL*randn(n,mtrunc+m);
 	X = mvfilter([],A,E);
 end
 
