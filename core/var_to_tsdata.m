@@ -74,6 +74,9 @@ else
 	assert(n1 == n,'Bad VAR coefficients array');
 end
 
+[n1,n2] = size(V);
+assert(n1 == n && n2 == n,'Bad residuals covariance matrix');
+
 if nargin < 4 || isempty(N), N = 1; end % single trial
 
 statts = false;
@@ -106,7 +109,7 @@ end
 [VL,cholp] = chol(V,'lower');
 assert(cholp == 0,'covariance matrix not positive-definite');
 
-if statts % generate first p stationary observations
+if statts % generate first p stationary observations using associated VAR(1) covariance matrix
 	[A1,V1] = var_companion(A,V); % associated VAR(1) parameters
 	G1 = dlyap(A1,V1);            % Solve the Lyapunov equation for the covariance matrix of the associated VAR(1)
 	[G1L,cholp] = chol(G1,'lower');
@@ -117,8 +120,13 @@ if statts % generate first p stationary observations
 		for r = 1:N
 			E(:,:,r) = [flip(reshape(G1L*randn(pn,1),n,p),2) VL*randn(n,m)];
 		end
+		X = zeros(n,mtrunc+m,N);
+		for r = 1:N
+			X(:,:,r) = arfilter(A,E(:,:,r)); % temporary: can't use mvfilter here
+		end
 	else
 		E = [flip(reshape(G1L*randn(pn,1),n,p),2) VL*randn(n,m)];
+		X = arfilter(A,E); % temporary: can't use mvfilter here
 	end
 else
 	if N > 1 % multi-trial
@@ -126,23 +134,46 @@ else
 		for r = 1:N
 			E(:,:,r) = VL*randn(n,mtrunc+m);
 		end
+		X = zeros(n,mtrunc+m,N);
+		for r = 1:N
+			X(:,:,r) = mvfilter([],A,E(:,:,r));
+		end
 	else
 		E = VL*randn(n,mtrunc+m);
+		X = mvfilter([],A,E);
 	end
-end
-
-if N > 1 % multi-trial
-	X = zeros(n,mtrunc+m,N);
-	for r = 1:N
-		X(:,:,r) = mvfilter([],A,E(:,:,r));
-	end
-else
-	X = mvfilter([],A,E);
 end
 
 if mtrunc > 0
 	X = X(:,mtrunc+1:mtrunc+m,:);
 	if nargout > 1
 		E = E(:,mtrunc+1:mtrunc+m,:);
+	end
+end
+
+% Temporary: in the AR case, mvfilter (partially) filters the first p observations; this routine doesn't.
+
+function Y = arfilter(A,X)
+
+if isempty(A)
+	Y = X;
+	return
+end
+[n,m] = size(X);
+Y = X;
+if isvector(A)
+	p = length(A);
+	for t = p+1:m
+		for k = 1:p
+			Y(:,t) = Y(:,t) + A(k)*Y(:,t-k);
+		end
+	end
+else
+	assert(size(A,1) == n && size(A,2) == n, 'VAR coefficient blocks must match input size');
+	p = size(A,3);
+	for t = p+1:m
+		for k = 1:p
+			Y(:,t) = Y(:,t) + A(:,:,k)*Y(:,t-k);
+		end
 	end
 end
