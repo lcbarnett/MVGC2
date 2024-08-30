@@ -159,7 +159,7 @@ if isempty(A)
 	Y = X;
 	return
 end
-[n,m] = size(X);
+m = size(X,2);
 Y = X;
 if isvector(A)
 	p = length(A);
@@ -169,7 +169,6 @@ if isvector(A)
 		end
 	end
 else
-	assert(size(A,1) == n && size(A,2) == n, 'VAR coefficient blocks must match input size');
 	p = size(A,3);
 	for t = p+1:m
 		for k = 1:p
