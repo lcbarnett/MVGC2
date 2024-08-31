@@ -1,8 +1,8 @@
 // Use Makefile in this directory to build .mex
 
 /* WARNING: THIS FUNCTION PERFORMS NO ERROR CHECKING WHATSOEVER! Don't even
- * think of calling mvfilter_mex itself! It is designed to be called via the
- * mvfilter.m Matlab wrapper function (utils subfolder); all error checking and
+ * think of calling arfilter_mex itself! It is designed to be called via the
+ * arfilter.m Matlab wrapper function (utils subfolder); all error checking and
  * documentation happens there. To compile, see Makefile in this folder */
 
 #include "mex.h"

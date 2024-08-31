@@ -8,10 +8,9 @@ function Y = arfilter(A,X,allt)
 %
 %     Y(t) = X(t) +  sum_k A(k)*Y(t-k)
 %
-% if the flag allt is set, the above starts at t = 1, and the sum over k is for all
-% indices for which the quantities are defined. If it is not set, the above is defined
-% for t > p, and the sum is from k = 1 to k = p (so initial values in X are copied
-% unchanged to Y).
+% If the flag allt is set, the above starts at t = 1, and the sum over k is is from
+% k = 1 to k = min(p,t). If it is not set, the above is defined for t > p (so p initial
+% values in X are copied unchanged to Y), and the sum is from k = 1 to k = p.
 %
 % This function is a wrapper for the MEX routine 'arfilter_mex'.
 
