@@ -93,6 +93,17 @@ else
 	fprintf(2,'[MVGC2 startup]          routine will be used.\n');
 end
 
+global have_arfilter_mex;
+have_arfilter_mex = exist('arfilter_mex','file') == 3;
+if have_arfilter_mex
+	fprintf('[MVGC2 startup] ''arfilter_mex'' mex routine available for your platform\n');
+else
+	fprintf(2,'[MVGC2 startup] WARNING: no ''arfilter'' mex file found; please run ''make'' from\n');
+	fprintf(2,'[MVGC2 startup]          the command line in the C subfolder, then ''mextest''\n');
+	fprintf(2,'[MVGC2 startup]          from the Matlab prompt. Meanwhile, a slower scripted\n');
+	fprintf(2,'[MVGC2 startup]          routine will be used.\n');
+end
+
 global have_findin_mex;
 have_findin_mex = exist('findin_mex','file') == 3;
 if have_findin_mex

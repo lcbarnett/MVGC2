@@ -122,11 +122,11 @@ if statts % generate first p stationary observations using associated VAR(1) cov
 		end
 		X = zeros(n,mtrunc+m,N);
 		for r = 1:N
-			X(:,:,r) = arfilter(A,E(:,:,r)); % temporary: can't use mvfilter here
+			X(:,:,r) = arfilter(A,E(:,:,r),false); % leaves first p observations in place
 		end
 	else
 		E = [flip(reshape(G1L*randn(pn,1),n,p),2) VL*randn(n,m)];
-		X = arfilter(A,E); % temporary: can't use mvfilter here
+		X = arfilter(A,E,false); % leaves first p observations in place
 	end
 else
 	if N > 1 % multi-trial
@@ -148,31 +148,5 @@ if mtrunc > 0
 	X = X(:,mtrunc+1:mtrunc+m,:);
 	if nargout > 1
 		E = E(:,mtrunc+1:mtrunc+m,:);
-	end
-end
-
-% Temporary: in the AR case, mvfilter (partially) filters the first p observations; this routine doesn't.
-
-function Y = arfilter(A,X)
-
-if isempty(A)
-	Y = X;
-	return
-end
-m = size(X,2);
-Y = X;
-if isvector(A)
-	p = length(A);
-	for t = p+1:m
-		for k = 1:p
-			Y(:,t) = Y(:,t) + A(k)*Y(:,t-k);
-		end
-	end
-else
-	p = size(A,3);
-	for t = p+1:m
-		for k = 1:p
-			Y(:,t) = Y(:,t) + A(:,:,k)*Y(:,t-k);
-		end
 	end
 end

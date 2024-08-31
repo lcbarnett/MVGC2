@@ -18,6 +18,7 @@ global mvgc_root;
 mexdir = fullfile(mvgc_root,'mex');
 
 global have_mvfilter_mex; have_mvfilter_mex = false;
+global have_arfilter_mex; have_arfilter_mex = false;
 global have_findin_mex;   have_findin_mex   = false;
 
 mexdir = fullfile(mvgc_root,'mex');
@@ -26,6 +27,7 @@ fprintf('\nYour platform   appears to be : %s (mex extension: %s)\n',plat,mexext
 fprintf('Your C compiler appears to be : %s\n\n',cc(2).Name);
 
 testmex('mvfilter',mexdir);
+testmex('arfilter',mexdir);
 testmex('findin',  mexdir);
 
 end
@@ -92,6 +94,39 @@ function success = mvfilter_mex_test
 	fprintf('\nMaximum absolute difference = %.g\n',maxad);
 	success = maxad < 1e-12;
 	if success, have_mvfilter_mex = true; end
+
+end
+
+function success = arfilter_mex_test
+
+	global have_arfilter_mex;
+	n = 11;
+	p = 23;
+	m = 10000;
+	rho = 0.95;
+	A = specnorm(randn(n,n,p),rho);
+	a = squeeze(specnorm(randn(1,1,p),rho));
+	oldstate = rng_seed(67132);
+	X = randn(n,m);
+	rng_restore(oldstate);
+	have_arfilter_mex = true;
+	fprintf('mex version      : '); tic
+	YX1 = arfilter(A,X,true);
+	YX2 = arfilter(a,X,true);
+	YX3 = arfilter(A,X,false);
+	YX4 = arfilter(a,X,false);
+	t = toc; fprintf('%8.6f seconds\n',t);
+	have_arfilter_mex = false;
+	fprintf('scripted version : '); tic
+	YM1 = arfilter(A,X,true);
+	YM2 = arfilter(a,X,true);
+	YM3 = arfilter(A,X,false);
+	YM4 = arfilter(a,X,false);
+	t = toc; fprintf('%8.6f seconds\n',t);
+	maxad = max([maxabs(YX1-YM1) maxabs(YX2-YM2) maxabs(YX3-YM3) maxabs(YX4-YM4)]);
+	fprintf('\nMaximum absolute difference = %.g\n',maxad);
+	success = maxad < 1e-12;
+	if success, have_arfilter_mex = true; end
 
 end
 
