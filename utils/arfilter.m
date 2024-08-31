@@ -34,12 +34,10 @@ else
 	p = size(A,3);
 end
 
-
 if nargin < 3
 	allt = true;
 else
 	assert(isscalar(allt) && islogical(allt), '''allt'' flag must be a logical scalar');
-
 end
 
 if ~allt && m <= p
