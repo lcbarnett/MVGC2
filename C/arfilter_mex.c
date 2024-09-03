@@ -10,8 +10,6 @@
 
 #define UNUSED __attribute__ ((unused))
 
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
-
 void mexFunction(int UNUSED nlhs, mxArray *plhs[], int UNUSED nrhs, const mxArray *prhs[])
 {
 	const double* const a    = mxGetPr(prhs[0]);
