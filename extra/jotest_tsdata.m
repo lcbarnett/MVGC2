@@ -1,4 +1,4 @@
-function stats = jotest_tsdata(y,p,normevs)
+function stats = jotest_tsdata(y,p,normevs,lamtol)
 
 % Calculate VECM Johansen Test statistics from multitrial time-series data
 %
@@ -7,7 +7,8 @@ function stats = jotest_tsdata(y,p,normevs)
 %
 % NOTE: p is the VAR, not VECM autoregressive order!
 
-if nargin < 3 || isempty(normevs), normevs = true; end % normalise eigenvectors?
+if nargin < 3 || isempty(normevs), normevs = true;  end % normalise eigenvectors?
+if nargin < 3 || isempty(lamtol),  lamtol  = 1e-10; end % eigenvalue tolerance
 
 [n,T,N] = size(y);
 
@@ -47,7 +48,8 @@ S11 = (R1*R1')/Te;
 W = S01'/chol(S00);
 [V,D] = eig(W*W',S11,'chol');
 [lam,sidx] = sort(diag(D),'descend');
-assert(all(lam>=0 & lam<1),'Bad eigenvalues!');
+assert(all(lam>=0 & lam < 1+lamtol),'Bad eigenvalues!');
+lam(lam > 1) = 1;
 V = V(:,sidx); % eigenvectors
 if normevs
 	VS11 = chol(S11)*V;
