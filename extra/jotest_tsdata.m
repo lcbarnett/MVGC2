@@ -8,7 +8,7 @@ function stats = jotest_tsdata(y,p,normevs,lamtol)
 % NOTE: p is the VAR, not VECM autoregressive order!
 
 if nargin < 3 || isempty(normevs), normevs = true;  end % normalise eigenvectors?
-if nargin < 3 || isempty(lamtol),  lamtol  = 1e-10; end % eigenvalue tolerance
+if nargin < 4 || isempty(lamtol),  lamtol  = 1e-10; end % eigenvalue tolerance
 
 [n,T,N] = size(y);
 
