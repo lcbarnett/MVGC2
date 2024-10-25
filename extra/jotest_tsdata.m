@@ -1,11 +1,18 @@
-function stats = jotest_tsdata(y,p,normevs,lamtol)
+function [stats,wflag] = jotest_tsdata(y,p,normevs,lamtol)
 
 % Calculate VECM Johansen Test statistics from multitrial time-series data
+%
+% NOTE: p is the VAR, not VECM autoregressive order!
 %
 % This is basically the same as the Matlab 'jcitest' (econ. Toolbox), but
 % accommodates multi-trial data, and works for n > 12.
 %
-% NOTE: p is the VAR, not VECM autoregressive order!
+% The warning flag wflag is an integer in [0,15], incremented as follows
+%
+% 1 - S00 is not positive definite
+% 2 - eigenvalues not all real
+% 4 - eigenvalues outside range [0,1)
+% 8 - S11 is not positive definite
 
 if nargin < 3 || isempty(normevs), normevs = true;  end % normalise eigenvectors?
 if nargin < 4 || isempty(lamtol),  lamtol  = 1e-10; end % eigenvalue tolerance
@@ -45,17 +52,32 @@ S11 = (R1*R1')/Te;
 
 % Eigenvalues and eigenvectors
 
-W = S01'/chol(S00);
-[V,D] = eig(W*W',S11,'chol');
-[lam,sidx] = sort(diag(D),'descend');
-assert(all(lam>=0 & lam < 1+lamtol),'Bad eigenvalues!');
-lam(lam > 1) = 1;
-V = V(:,sidx); % eigenvectors
-if normevs
-	VS11 = chol(S11)*V;
-	V = V./sqrt(diag(VS11'*VS11))';
+wflag = 0;
+
+[C00,cholp] = chol(S00);
+if cholp == 0 % okay, S00 positive-definite
+	W = S01'/C00;
+	[V,D] = eig(W*W',S11,'chol');
+else
+	[V,D] = eig(S01'*(S00\S01),S11,'qz');
+	wflag = wflag+1;
 end
-loglam = log(1-lam);
+[lam,sidx] = sort(diag(D),'descend');
+V = V(:,sidx); % eigenvectors
+if ~isreal(lam),            wflag = wflag+2; end
+if any(lam < 0 | lam >= 1), wflag = wflag+4; end
+
+if normevs
+	[C11,cholp] = chol(S11);
+	if cholp == 0 % okay, S11 positive-definite
+		VS11 = chol(S11)*V;
+		V = V./sqrt(diag(VS11'*VS11))';
+	else
+		V = V./sqrt(diag(V'*S11*V))';
+		wflag = wflag+8;
+	end
+end
+loglam = log(abs(1-lam));  % abs for rounding lambda ~1 (for consistency with Matlab 'jcitest')
 
 % Statistical results
 
@@ -63,5 +85,5 @@ stats.ess =  Te; % effective sample size
 stats.evs =  lam;
 stats.A   =  S01*V;
 stats.B   =  V;
-stats.me  = -loglam;                         % scale by effective sample size for inference
-stats.tr  = -flipud(cumsum(flipud(loglam))); % scale by effective sample size for inference
+stats.me  = -loglam;                         % scale by Te for inference
+stats.tr  = -flipud(cumsum(flipud(loglam))); % scale by Te for inference
