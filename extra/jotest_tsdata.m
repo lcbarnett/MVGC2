@@ -1,4 +1,4 @@
-function [stats,wflag] = jotest_tsdata(y,p,normevs,lamtol)
+function [stats,wflag] = jotest_tsdata(y,p,normevs,verb)
 
 % Calculate VECM Johansen Test statistics from multitrial time-series data
 %
@@ -7,15 +7,16 @@ function [stats,wflag] = jotest_tsdata(y,p,normevs,lamtol)
 % This is basically the same as the Matlab 'jcitest' (econ. Toolbox), but
 % accommodates multi-trial data, and works for n > 12.
 %
-% The warning flag wflag is an integer in [0,15], incremented as follows
+% The warning flag wflag is an integer in [0,31], incremented as follows
 %
-% 1 - S00 is not positive definite
-% 2 - eigenvalues not all real
-% 4 - eigenvalues outside range [0,1)
-% 8 - S11 is not positive definite
+%  1 - S00 is not positive-definite
+%  2 - S11 is not positive-definite
+%  4 - eigenvalues calculation badly-conditioned
+%  8 - eigenvalues not all real
+% 16 - eigenvalues outside range [0,1)
 
 if nargin < 3 || isempty(normevs), normevs = true;  end % normalise eigenvectors?
-if nargin < 4 || isempty(lamtol),  lamtol  = 1e-10; end % eigenvalue tolerance
+if nargin < 4 || isempty(verb),    verb    = false; end % verbose?
 
 [n,T,N] = size(y);
 
@@ -55,17 +56,34 @@ S11 = (R1*R1')/Te;
 wflag = 0;
 
 [C00,cholp] = chol(S00);
+oldwarn = warning;
+warning('off','MATLAB:nearlySingularMatrix');
+warning('off','MATLAB:singularMatrix');
+lastwarn('');
 if cholp == 0 % okay, S00 positive-definite
 	W = S01'/C00;
 	[V,D] = eig(W*W',S11,'chol');
 else
 	[V,D] = eig(S01'*(S00\S01),S11,'qz');
 	wflag = wflag+1;
+	if verb, fprintf(2,'WARNING: S00 not positive-definite\n'); end
 end
+[~,warnid] = lastwarn;
+if strcmp(warnid,'MATLAB:nearlySingularMatrix') || strcmp(warnid,'MATLAB:singularMatrix')
+	wflag = wflag+4;
+	if verb, fprintf(2,'WARNING: eigenvalues calculation badly-conditioned\n'); end
+end
+warning(oldwarn);
 [lam,sidx] = sort(diag(D),'descend');
 V = V(:,sidx); % eigenvectors
-if ~isreal(lam),            wflag = wflag+2; end
-if any(lam < 0 | lam >= 1), wflag = wflag+4; end
+if ~isreal(lam),
+	wflag = wflag+8;
+	if verb, fprintf(2,'WARNING: some eigenvalues not real\n'); end
+end
+if any(lam < 0 | lam >= 1)
+	wflag = wflag+16;
+	if verb, fprintf(2,'WARNING: some eigenvalues out of range\n'); end
+end
 
 if normevs
 	[C11,cholp] = chol(S11);
@@ -74,7 +92,8 @@ if normevs
 		V = V./sqrt(diag(VS11'*VS11))';
 	else
 		V = V./sqrt(diag(V'*S11*V))';
-		wflag = wflag+8;
+		wflag = wflag+2;
+		if verb, fprintf(2,'WARNING: S11 not positive-definite\n'); end
 	end
 end
 loglam = log(abs(1-lam));  % abs for rounding lambda ~1 (for consistency with Matlab 'jcitest')
