@@ -1,4 +1,4 @@
-function F = vou_to_mvgc(A,V,x,y,verb)
+function F = vou_to_mvgc(A,V,x,y)
 
 % Calculate time-domain conditional Granger causality rate for a vector
 % Ornstein-Uhlenbeck (VOU) process. Source/target/conditioning variables may be
@@ -9,33 +9,8 @@ function F = vou_to_mvgc(A,V,x,y,verb)
 % V     - VOU Wiener process covariance matrix
 % x     - multi-index of target variable
 % y     - multi-index of source variable
-% verb  - verbosity flag (default: true)
 %
 % F     - Granger causality rate from y to x, conditional on other variables
-%
-% NOTE 1: The total number of variables (dimensionality of the system) is
-%         identified from the size of the A, V matrices. All variables indices
-%         that do NOT appear in the target x and source y multi-indices (which
-%         must not overlap) are taken as conditioning variables.
-%
-% NOTE 2: The VOU is stable iff max(real(eig(A))) < 0; however, this function
-%         will generally return a reasonable-looking answer even in the unstable
-%         case. Whether that answer is meaningful (as a transfer entropy rate)
-%         requires clarification :-/ See ref. (3) below.
-%
-% NOTE 3: This function requires the Matlab Control System Toolbox for the "care" function.
-%
-% EXAMPLE:
-%
-%    n = 8;                         % dimensionality of system
-%    lambda = -1;                   % max. real eigenvalue (negative for stable system)
-%    A = randn(n);                  % random VOU coefficients matrix
-%    A = A - (max(real(eig(A)))-lambda)*eye(n); % adjust so that max. real eigenvalue = lambda
-%    L = randn(n,40); V = (L*L')/n; % random positive-definite VOU covariance matrix
-%    x = 1:3;                       % target variable indices
-%    y = 4:5;                       % source variable indices
-%    F = vou_to_mvgc(A,V,x,y);      % calculate conditional Granger causality rate
-%    fprintf('Granger causality rate = %g nats per unit time\n',F);
 %
 % REFERENCES:
 %
@@ -59,28 +34,7 @@ assert(isempty(intersect(x,y)), 'Source/target multi-indices overlap');
 z = 1:n; z([x y]) = []; % indices of remaining (conditioning) variables
 r = [x z];              % indices for the reduced system
 
-% Solve the associated CARE (see refs. 1,3)
-
 F = NaN;
-[P,~,~,rep] = care(A(y,y)',A(r,y)',V(y,y),V(r,r),V(r,y)');
-if vouerror(rep), return; end % check CARE report, bail out on error
-
-% Implement F = trace(V(x,x)\(A(x,y)*P*A(x,y)'))
-
-[LP,cholp] = chol(P,'lower');
-if cholp ~= 0
-    if verb, fprintf(2,'WARNING: CARE solution not positive-definite\n'); end
-    F = trace(V(x,x)\(A(x,y)*P*A(x,y)')); % fall-back
-    return
-end
-
-[LV,cholp] = chol(V(x,x),'lower');
-if cholp ~= 0
-    if verb, fprintf(2,'WARNING: covariance matrix not positive-definite\n'); end
-    F = trace(V(x,x)\(A(x,y)*P*A(x,y)')); % fall back
-    return
-end
-
-W = LV\(A(x,y)*LP);
-
-F = trace(W*W'); % Granger causality rate
+[P,~,~,rep] = icare(A(y,y)',A(r,y)',V(y,y),V(r,r),V(r,y)');
+if vouerror(rep.Report), return; end % check CARE report, bail out on error
+F = trace(V(x,x)\(A(x,y)*P*A(x,y)'));
