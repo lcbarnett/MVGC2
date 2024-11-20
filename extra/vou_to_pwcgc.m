@@ -27,5 +27,19 @@ for y = 1:n
     r = [1:y-1 y+1:n]; % omit y
 	[P,~,~,rep] = icare(A(y,y)',A(r,y)',V(y,y),V(r,r),V(r,y)'); % NOTE: these are actually a quadratic equations for P!
 	if vouerror(rep.Report), return; end % check CARE report, bail out on error
+%{
+	L = chol(V(r,r));
+	AOL = A(r,y)'/L;
+	VOL = V(y,r)/L;
+	a = AOL*AOL';
+	b = AOL*VOL'-A(y,y);
+	c = VOL*VOL'-V(y,y);
+	P1 = (sqrt(b^2-a*c)-b)/a;
+
+y
+AOL
+[a b c]
+abs(P-P1)
+%}
 	F(r,y) = (A(r,y).^2).*(P./diag(V(r,r)));
 end

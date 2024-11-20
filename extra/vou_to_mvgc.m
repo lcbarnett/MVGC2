@@ -38,3 +38,21 @@ F = NaN;
 [P,~,~,rep] = icare(A(y,y)',A(r,y)',V(y,y),V(r,r),V(r,y)');
 if vouerror(rep.Report), return; end % check CARE report, bail out on error
 F = trace(V(x,x)\(A(x,y)*P*A(x,y)'));
+
+%{
+if length(y) == 1 % P scalar
+
+	L = chol(V(r,r));
+	AOL = A(r,y)'/L;
+	VOL = V(y,r)/L;
+
+	a = AOL*AOL'
+	b = AOL*VOL'-A(y,y)
+	c = VOL*VOL'-V(y,y)
+
+	P1 = (sqrt(b^2-a*c)-b)/a;
+
+[P,P1]
+
+end
+%}
