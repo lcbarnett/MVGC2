@@ -3,7 +3,8 @@ function F = vou_to_pwcgc(A,V)
 % Calculate time-domain pairwise-conditional Granger causality rates (Granger-
 % causal graph) for a vector Ornstein-Uhlenbeck (VOU) process. Uses a state-space
 % method which involves solving an associated continuous-time algebraic Riccati
-% equation (CARE).
+% equation (CARE). In this case, though, the CARE is simply a scalar quadratic
+% equation.
 %
 % A     - VOU coefficients matrix
 % V     - VOU Wiener process covariance matrix
@@ -25,21 +26,25 @@ function F = vou_to_pwcgc(A,V)
 F = nan(n);
 for y = 1:n
     r = [1:y-1 y+1:n]; % omit y
-	[P,~,~,rep] = icare(A(y,y)',A(r,y)',V(y,y),V(r,r),V(r,y)'); % NOTE: these are actually a quadratic equations for P!
-	if vouerror(rep.Report), return; end % check CARE report, bail out on error
-%{
+
+	if all(A(r,y) == 0)
+		F(r,y) = 0;
+		% fprintf('\tnode %d : all zero\n',y);
+		continue
+	end
+
+%	[P,~,~,rep] = icare(A(y,y)',A(r,y)',V(y,y),V(r,r),V(r,y)'); % NOTE: these are actually a quadratic equations for P!
+%	if vouerror(rep.Report), continue; end % check CARE report, bail out on error
+
 	L = chol(V(r,r));
 	AOL = A(r,y)'/L;
 	VOL = V(y,r)/L;
 	a = AOL*AOL';
 	b = AOL*VOL'-A(y,y);
 	c = VOL*VOL'-V(y,y);
-	P1 = (sqrt(b^2-a*c)-b)/a;
+	P = (sqrt(b^2-a*c)-b)/a;
 
-y
-AOL
-[a b c]
-abs(P-P1)
-%}
+	%fprintf('\tnode %d : a = %7.4f, b = %7.4f, c = %7.4f, D = %7.4f, P = %7.4f, P1 = %7.4f, diff = %7.4f\n',y,a,b,c,sqrt(b^2-a*c),P,P1,abs(P-P1));
+
 	F(r,y) = (A(r,y).^2).*(P./diag(V(r,r)));
 end

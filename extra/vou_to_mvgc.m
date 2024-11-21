@@ -34,25 +34,28 @@ assert(isempty(intersect(x,y)), 'Source/target multi-indices overlap');
 z = 1:n; z([x y]) = []; % indices of remaining (conditioning) variables
 r = [x z];              % indices for the reduced system
 
-F = NaN;
-[P,~,~,rep] = icare(A(y,y)',A(r,y)',V(y,y),V(r,r),V(r,y)');
-if vouerror(rep.Report), return; end % check CARE report, bail out on error
-F = trace(V(x,x)\(A(x,y)*P*A(x,y)'));
 
-%{
-if length(y) == 1 % P scalar
+if all(A(r,y) == 0)
+	F = 0;
+	return
+end
+
+if length(y) == 1 % P scalar, so CARE is simply a quadratic equation.
 
 	L = chol(V(r,r));
 	AOL = A(r,y)'/L;
 	VOL = V(y,r)/L;
+	a = AOL*AOL';
+	b = AOL*VOL'-A(y,y);
+	c = VOL*VOL'-V(y,y);
+	P = (sqrt(b^2-a*c)-b)/a;
+	F = P*trace(V(x,x)\(A(x,y)*A(x,y)'));
 
-	a = AOL*AOL'
-	b = AOL*VOL'-A(y,y)
-	c = VOL*VOL'-V(y,y)
+else
 
-	P1 = (sqrt(b^2-a*c)-b)/a;
-
-[P,P1]
+	F = NaN;
+	[P,~,~,rep] = icare(A(y,y)',A(r,y)',V(y,y),V(r,r),V(r,y)');
+	if vouerror(rep.Report), return; end % check CARE report, bail out on error
+	F = trace(V(x,x)\(A(x,y)*P*A(x,y)'));
 
 end
-%}
