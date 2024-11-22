@@ -35,7 +35,7 @@ z = 1:n; z([x y]) = []; % indices of remaining (conditioning) variables
 r = [x z];              % indices for the reduced system
 
 
-if all(A(r,y) == 0)
+if all(A(x,y) == 0)
 	F = 0;
 	return
 end
@@ -55,7 +55,11 @@ else
 
 	F = NaN;
 	[P,~,~,rep] = icare(A(y,y)',A(r,y)',V(y,y),V(r,r),V(r,y)');
-	if vouerror(rep.Report), return; end % check CARE report, bail out on error
+	cerror = carerep(rep.Report);
+	if ~isempty(cerror)
+		fprintf(2,'WARNING: %s\n',cerror);
+		return
+	end
 	F = trace(V(x,x)\(A(x,y)*P*A(x,y)'));
 
 end

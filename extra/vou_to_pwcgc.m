@@ -29,12 +29,8 @@ for y = 1:n
 
 	if all(A(r,y) == 0)
 		F(r,y) = 0;
-		% fprintf('\tnode %d : all zero\n',y);
 		continue
 	end
-
-%	[P,~,~,rep] = icare(A(y,y)',A(r,y)',V(y,y),V(r,r),V(r,y)'); % NOTE: these are actually a quadratic equations for P!
-%	if vouerror(rep.Report), continue; end % check CARE report, bail out on error
 
 	L = chol(V(r,r));
 	AOL = A(r,y)'/L;
@@ -43,8 +39,6 @@ for y = 1:n
 	b = AOL*VOL'-A(y,y);
 	c = VOL*VOL'-V(y,y);
 	P = (sqrt(b^2-a*c)-b)/a;
-
-	%fprintf('\tnode %d : a = %7.4f, b = %7.4f, c = %7.4f, D = %7.4f, P = %7.4f, P1 = %7.4f, diff = %7.4f\n',y,a,b,c,sqrt(b^2-a*c),P,P1,abs(P-P1));
 
 	F(r,y) = (A(r,y).^2).*(P./diag(V(r,r)));
 end
