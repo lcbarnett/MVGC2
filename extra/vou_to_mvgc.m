@@ -1,4 +1,4 @@
-function F = vou_to_mvgc(A,V,x,y)
+function [F,err] = vou_to_mvgc(A,V,x,y)
 
 % Calculate time-domain conditional Granger causality rate for a vector
 % Ornstein-Uhlenbeck (VOU) process. Source/target/conditioning variables may be
@@ -11,6 +11,7 @@ function F = vou_to_mvgc(A,V,x,y)
 % y     - multi-index of source variable
 %
 % F     - Granger causality rate from y to x, conditional on other variables
+% err   - CARE error report number (zero if no error); run carerep(err) for eror message
 %
 % REFERENCES:
 %
@@ -34,6 +35,7 @@ assert(isempty(intersect(x,y)), 'Source/target multi-indices overlap');
 z = 1:n; z([x y]) = []; % indices of remaining (conditioning) variables
 r = [x z];              % indices for the reduced system
 
+err = 0;
 
 if all(A(x,y) == 0)
 	F = 0;
@@ -55,9 +57,9 @@ else
 
 	F = NaN;
 	[P,~,~,rep] = icare(A(y,y)',A(r,y)',V(y,y),V(r,r),V(r,y)');
-	cerror = carerep(rep.Report);
-	if ~isempty(cerror)
-		fprintf(2,'WARNING: %s\n',cerror);
+	err = rep.Report;
+	if err ~= 0
+		F = NaN;
 		return
 	end
 	F = trace(V(x,x)\(A(x,y)*P*A(x,y)'));
