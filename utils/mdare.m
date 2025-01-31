@@ -19,9 +19,9 @@ function [K,V,rep,L,P] = mdare(A,C,Q,R,S)
 % DARE solution, which should be tested for accuracy (rep > sqrt(eps) is
 % reasonable).
 %
-% Note that if the SS (A,C,Q,R,S) is well-formed - that is, A is stable and R
-% positive definite - then (A,K,V) should be a well-formed innovations-form SS
-% model. WE DON'T TEST FOR THAT HERE! It is up to the caller to do so if deemed
+% Note that if the SS (A,C,Q,R,S) is well-formed - that is, (A,C) is stablisable
+% and R positive-definite - then (A,K,V) should be a well-formed innovations-form
+% SS model. WE DON'T TEST FOR THAT HERE! It is up to the caller to do so if deemed
 % necessary.
 
 [r, r1] = size(A); assert(r1 == r);
