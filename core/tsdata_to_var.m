@@ -98,18 +98,14 @@ end
 
 X = demean(X); % no constant term
 
-if  strcmpi(regmode,'OLS') % OLS (QR decomposition)
+if  strcmpi(regmode,'OLS') % OLS
 
 	obs = p+1:m;  % the useable observations (i.e., lose the first p)
+	lags = 1:p;   % the lags
 
-	X0 = reshape(X(:,obs,:),n,M); % concatenate trials for unlagged observations
-	XL = zeros(n,p,M);
-	for k = 1:p % for each lags
-		XL(:,k,:) = reshape(X(:,obs-k,:),n,M); % concatenate trials for k-lagged observations
-	end
-	XL = reshape(XL,p*n,M); % stack lagged observations
-
-	A = X0/XL; % OLS (via QR decomposition)
+	X0 = reshape(X(:,obs,:),n,M);         % concatenate trials for unlagged observations
+	XL = reshape(X(:,obs-lags',:),p*n,M); % concatenate trials for lagged   observations
+	A = X0/XL;                            % OLS (QR decomposition)
 
 	if nargout > 1
 		E = X0-A*XL; % residuals
