@@ -106,7 +106,7 @@ if ~isempty(plotm) % we're going to plot
 
 		fprintf(gp,'datfile = "%s.dat"\n',gpname);
 
-		fprintf(gp,'\nset grid\n');
+		fprintf(gp,'\nset grid lt 1 lc "dark-grey"\n');
 		fprintf(gp,'set xr[0:%g]\n',p);
 		fprintf(gp,'set xlabel "AR lags"\n');
 

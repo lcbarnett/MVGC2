@@ -1,4 +1,4 @@
-function [A,C,K,V,Z,E] = tsdata_to_ss(X,pf,r)
+function [A,C,K,V,Z,E] = tsdata_to_ss(X,pf,r,plotm)
 
 % Estimate an (innovations form) state space model from an empirical observation
 % time series using Larimore's Canonical Correlations Analysis (CCA) state
@@ -7,7 +7,8 @@ function [A,C,K,V,Z,E] = tsdata_to_ss(X,pf,r)
 %
 % X         - observation process time series
 % pf        - past/future horizons for canonical correlations
-% r         - SS model order (see 'tsdata_to_ssmo.m)
+% r         - SS model order (see 'tsdata_to_ssmo.m), or empty for Bauer's Singular Value Criterion (SVC)
+% plotm     - empty: don't plot, integer: Matlab plot to figure n (if zero, use next); string: Gnuplot terminal (may be empty)
 %
 % A,C,K,V   - estimated innovations form state space parameters
 % Z         - estimated state process time series
@@ -29,8 +30,18 @@ else
     error('past/future horizon must be a 2-vector or a scalar positive integer');
 end
 
-rmax = n*min(p,f);
-assert(isscalar(r) && isint(r) && r >= 0 && r <= rmax,'model order must be a positive integer <= n*min(p,f) = %d',rmax);
+rmax = n*min(p,f); % maximum model order
+
+if nargin < 3 || isempty(r) % use Bauer's Singular Value Criterion (SVC)
+	SVC = true;
+elseif ischar(r) && strcmpi(r,'SVC')
+	SVC = true;
+else
+	assert(isscalar(r) && isint(r) && r >= 0 && r <= rmax,'model order must be a positive integer <= n*min(p,f) = %d',rmax);
+	SVC = false;
+end
+
+if nargin < 4, plotm = []; end % default: no plot
 
 A = NaN;
 C = NaN;
@@ -76,6 +87,17 @@ assert(all(isfinite(BETA(:))),'subspace regression failed');
 assert(all(isfinite(S(:))),'SVD failed');
 
 sval = diag(S); % the singular values
+
+if SVC % use SVC model order
+	df      = 2*n*(1:rmax)'; % number of free parameters (Hannan & Deistler, see also Bauer 2001) ... or rmax*rmax+2*n*rmax ???
+	svc     = -log(1-[sval(2:rmax);0]) + df*(log(Mh)/Mh); % Bauer's Singular Value Criterion
+	morders = (0:rmax)';
+	[~,idx] = min(svc);
+	r       = morders(idx);
+	assert(r > 0,'SVC model order is zero!');
+	if r == rmax, fprintf(2,'*** WARNING: SVC model order is maximum (''pf'' may have been set too low)\n'); end
+	if ~isempty(plotm), plot_svc(sval,svc,r,rmax,plotm); end
+end
 
 Z = reshape((diag(sqrt(sval(1:r)))*U(:,1:r)'/Wp)*XP,r,mp1,N); % Kalman states estimate; note that Z starts at t = p+1, has length mp1 = m-p+1
 assert(all(isfinite(Z(:))),'Kalman states estimation failed');
