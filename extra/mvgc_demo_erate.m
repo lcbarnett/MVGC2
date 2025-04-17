@@ -72,12 +72,6 @@ else  % Generate test data from a random state-space model
 
 end
 
-% If normalised entropy rates required, normalise data by variance
-
-if ernorm
-	X = demean(X,true);
-end
-
 %%%%%%%%%%%%%%% Estimate SS model from data %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Calculate and plot VAR model order estimation criteria up to specified maximum model order.
@@ -101,6 +95,18 @@ fignum = fignum+1;
 [A,C,K,V] = tsdata_to_ss(X,2*varmo,'SVC',fignum); % Bauer recommends 2 x VAR model order for past/future horizon
 ptoc;
 
+% If the normalise flag is set to true, then the ISS model is normalised
+% for unit variance.
+
+% If normalised entropy rates required, the ISS model is normalised by variance.
+% Error rates are then equivalent to minus the mutual information between the
+%  process and its own past and as such are scale-% invariant (and non-positive).
+
+if ernorm
+	[A,C,K,V] = ss_normalise(A,C,K,V);
+	fprintf('\n*** Normalising entropy rates by variance\n');
+end
+
 % Report information on the estimated SS, and check for errors.
 
 info = ss_info(A,C,K,V);
@@ -111,7 +117,7 @@ assert(~info.error,'SS error(s) found - bailing out');
 ptic('*** ss2fres... ');
 [fres,frierr,frpow2] = ss2fres(A,C,K,V);
 ptoc;
-fprintf('\nUsing frequency resolution %d = 2^%d (integration error = %.2e)\n',fres,frpow2,frierr);
+fprintf('\n*** Using frequency resolution %d = 2^%d (integration error = %.2e)\n',fres,frpow2,frierr);
 
 freqs = (fs/2)*(0:fres)'/fres; % vector of frequencies up to Nyqvist
 

@@ -1,4 +1,4 @@
-function [erates,fres] = ss2serate(A,C,K,V,fs,fbands,rois,fres,normalise)
+function [erates,fres] = ss2serate(A,C,K,V,fs,fbands,rois,fres)
 
 % Calculate spectral entropy rates for SS model for specified
 % frequency bands and ROIs.
@@ -11,7 +11,7 @@ function [erates,fres] = ss2serate(A,C,K,V,fs,fbands,rois,fres,normalise)
 % a 2-column matrix of frequency bands, 'broadband', 'std' or 'stdx'.
 % If empty (default) or 'broadband', then "broadband" entropy rates
 % (i.e.,across the entire spectrum) are returned. If 'std', then
-% delta, theta, alpha, gamma frequency bands as used in the neuro-
+% delta, theta, alpha, gamma frequency bands as defined in the neuro-
 % science literature are used; 'stdx' splits gamma into high and low
 % gamma.
 %
@@ -27,12 +27,6 @@ function [erates,fres] = ss2serate(A,C,K,V,fs,fbands,rois,fres,normalise)
 % a slower, but sometimes more optimal method is used for auto-
 % matic calculation (the default faster method is generally okay,
 % though).
-%
-% If the normalise flag is set to true, then the ISS model is
-% normalised for unit variance. The resulting statistic is then
-% scale-invariant. (In the time domain, normalised rates are
-% equivalent to minus the mutual information between the process
-% and its own past; see ss2erate.m.)
 %
 % Results are returned in the vector erates. In the case that fbands
 % is specified as a vector of band boundaries, 'std', or 'stdx', as
@@ -52,25 +46,17 @@ if nargin < 8
 	fres = []; % automatic spectral resolution (fast method)
 	fastfres = true;
 elseif ischar(fres) && strcmpi(fres,'accest')
-	fres = [];
+	fres = []; % automatic spectral resolution (slow but more optimal method)
 	fastfres = false;
 else
 	assert(isscalar(fres) && isnumeric(fres),'Spectral resolution must empty, ''accest'', or a number');
-end
-
-if nargin < 9 || isempty(normalise)
-	normalise = false;
-end
-
-if normalise
-	[A,C,K,V] = ss_normalise(A,C,K,V);
 end
 
 if broadband
 %	fprintf('\nBroadband: 0-%g Hz\n',fs/2);
 else
 
-	% Sort out frequency bands specification
+	% Parse frequency bands specification
 
 	if ischar(fbands)
 		if     strcmpi(fbands,'std') % single gamma band > 30 Hz
@@ -95,8 +81,6 @@ else
 		fbands(nbb+1,:) = [fb(nbb) fs/2]; % up to Nyqvist frequency
 	end
 	nfbands = size(fbands,1);
-%	fprintf('\nFrequency bands (Hz):\n');
-%	disp(fbands);
 end
 
 % Sort out ROIs

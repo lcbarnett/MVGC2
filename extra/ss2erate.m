@@ -1,4 +1,4 @@
-function erates = ss2erate(A,C,K,V,rois,normalise)
+function erates = ss2erate(A,C,K,V,rois)
 
 % Calculate time-domain entropy rates for SS model for specified ROIs.
 %
@@ -9,24 +9,11 @@ function erates = ss2erate(A,C,K,V,rois,normalise)
 % values: 'allchans' treats the entire system as a single roi;
 % 'perchan' returns entropy rates for each individual channel.
 %
-% If the normalise flag is set to true, then the ISS model is normalised
-% for unit variance. Error rates are then equivalent to minus the mutual
-% information between the process and its own past and as such are scale-
-% invariant (and non-positive).
-%
 % Results are returned in the vector erates.
 
 if nargin < 5 || isempty(rois) || (ischar(rois) && strcmpi(rois,'allchans')) % all channels as a single ROI (no DARE required)
 	erates = logdet(V);
 	return
-end
-
-if nargin < 6 || isempty(normalise)
-	normalise = false;
-end
-
-if normalise
-	[A,C,K,V] = ss_normalise(A,C,K,V);
 end
 
 % Calculate log-determinants of reduced residuals covariance matrices
