@@ -1,32 +1,29 @@
-function [erates,fres] = ss2serate(A,C,K,V,fs,fbands,rois,fres)
+function erates = ss2serate(A,C,K,V,rois,fbands,fs,fres)
 
 % Calculate spectral entropy rates for SS model for specified
 % frequency bands and ROIs.
 %
 % A, C, K, are the ISS parameter matrices, V the residuals covariance matrix
 %
-% fs is sampling rate
-%
-% fbands is either empty, a column vector of frequency band boundaries,
-% a 2-column matrix of frequency bands, 'broadband', 'std' or 'stdx'.
-% If empty (default) or 'broadband', then "broadband" entropy rates
-% (i.e.,across the entire spectrum) are returned. If 'std', then
-% delta, theta, alpha, gamma frequency bands as defined in the neuro-
-% science literature are used; 'stdx' splits gamma into high and low
-% gamma.
-%
 % rois is a cell vector, where each cell is a vector of channel
 % numbers for the channels in an ROI. It may also take two special
 % values: 'allchans' treats the entire system as a single roi;
 % 'perchan' returns entropy rates for each individual channel.
 %
+% fbands is either a column vector of frequency band boundaries,
+% a 2-column matrix of frequency bands, 'broadband', 'std' or 'stdx'.
+% If set to "broadband", entropy rates across the entire spectrum)
+% up to the Nyqvist frequency are returned. If 'std', then delta, theta,
+% alpha, gamma frequency bands as defined in the neuroscience literature
+% are used; 'stdx' splits gamma into high and low gamma.
+%
+% fs is sampling rate
+%
 % fres specifies the spectral resolution (number of frequencies,
-% evenly spaced, at which spectral power is calculated). If left
-% empty (default), a minimum optimal value is calculated
-% automatically. If it takes the special value 'accest', then
-% a slower, but sometimes more optimal method is used for auto-
-% matic calculation (the default faster method is generally okay,
-% though).
+% evenly spaced, at which spectral power is calculated). See
+% ss2fres.m for automatic calculation of a frequency resolution for
+% which spectral error rates will integrate/sum accurately to the
+% corresponding time-domain error rate.
 %
 % Results are returned in the vector erates. In the case that fbands
 % is specified as a vector of band boundaries, 'std', or 'stdx', as
@@ -34,23 +31,7 @@ function [erates,fres] = ss2serate(A,C,K,V,fs,fbands,rois,fres)
 % it's out by a couple of decimal points that's fine). Broadband
 % entropy rates should also integrate to the corresponding logdet(V).
 
-% Some parameter defaults
-
-broadband = nargin < 6 || isempty(fbands) || (ischar(fbands) && strcmpi(fbands,'broadband'));
-
-if nargin < 7 || isempty(rois)
-	rois = 'allchans'; % return whole-system entropy rates (i.e., all channels considered as a single ROI)
-end
-
-if nargin < 8
-	fres = []; % automatic spectral resolution (fast method)
-	fastfres = true;
-elseif ischar(fres) && strcmpi(fres,'accest')
-	fres = []; % automatic spectral resolution (slow but more optimal method)
-	fastfres = false;
-else
-	assert(isscalar(fres) && isnumeric(fres),'Spectral resolution must empty, ''accest'', or a number');
-end
+broadband = ischar(fbands) && strcmpi(fbands,'broadband');
 
 if broadband
 %	fprintf('\nBroadband: 0-%g Hz\n',fs/2);

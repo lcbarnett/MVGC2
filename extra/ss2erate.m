@@ -11,7 +11,7 @@ function erates = ss2erate(A,C,K,V,rois)
 %
 % Results are returned in the vector erates.
 
-if nargin < 5 || isempty(rois) || (ischar(rois) && strcmpi(rois,'allchans')) % all channels as a single ROI (no DARE required)
+if ischar(rois) && strcmpi(rois,'allchans') % all channels as a single ROI (no DARE required)
 	erates = logdet(V);
 	return
 end

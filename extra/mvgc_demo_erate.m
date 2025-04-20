@@ -6,6 +6,7 @@ if ~exist('empdata', 'var'), empdata  = false; end % set this to true if you hav
 if ~exist('varmosel','var'), varmosel = 'HQC'; end % VAR model order selection ('AIC', 'BIC', 'HQC', 'LRT', or supplied numerical value)
 if ~exist('varmomax','var'), varmomax = 48;    end % maximum model order for VAR model order selection
 if ~exist('ernorm',  'var'), ernorm   = false; end % calculate normalised entropy rates (this makes them scale-invariant - and always negative!)
+if ~exist('fres',    'var'), fres     = [];    end % frequency resolution for spectral entropy rates; leave empty for automatic calculation
 
 %%%%%%%%%%%%%%%%%% Read your data in our generate test data %%%%%%%%%%%%%%%%%%%%
 
@@ -100,11 +101,11 @@ ptoc;
 
 % If normalised entropy rates required, the ISS model is normalised by variance.
 % Error rates are then equivalent to minus the mutual information between the
-%  process and its own past and as such are scale-% invariant (and non-positive).
+% process and its own past and as such are scale-invariant (and non-positive).
 
 if ernorm
+	fprintf('\n*** Normalising ISS model by variance\n');
 	[A,C,K,V] = ss_normalise(A,C,K,V);
-	fprintf('\n*** Normalising entropy rates by variance\n');
 end
 
 % Report information on the estimated SS, and check for errors.
@@ -112,14 +113,17 @@ end
 info = ss_info(A,C,K,V);
 assert(~info.error,'SS error(s) found - bailing out');
 
-%%%%%%%%%%%%%%% Calculate an appropriate frequency resolution %%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%% Frequency resolution for spectral entropy rates %%%%%%%%%%%%%%%%
 
-ptic('*** ss2fres... ');
-[fres,frierr,frpow2] = ss2fres(A,C,K,V);
-ptoc;
-fprintf('\n*** Using frequency resolution %d = 2^%d (integration error = %.2e)\n',fres,frpow2,frierr);
-
-freqs = (fs/2)*(0:fres)'/fres; % vector of frequencies up to Nyqvist
+if isempty(fres)
+	ptic('*** ss2fres... ');
+	[fres,frierr,frpow2] = ss2fres(A,C,K,V);
+	ptoc;
+	fprintf('\n*** Using automatically-calculated frequency resolution %d = 2^%d (integration error = %.2e)\n',fres,frpow2,frierr);
+else
+	assert(isscalar(fres) && isnumeric(fres) && fres > 0,'Frequency resolution must be a positive number');
+	fprintf('*** Using user-supplied frequency resolution %d\n',fres);
+end
 
 %%%%%%%%%%%%%%% Calculate entropy rates %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -138,25 +142,25 @@ ptoc;
 % Broadband, global
 
 ptic('\n*** ss2serate: frequency domain (broadband), global... ');
-glbrerate = ss2serate(A,C,K,V,fs,'broadband','allchans',fres);
+glbrerate = ss2serate(A,C,K,V,'allchans','broadband',fs,fres);
 ptoc;
 
 % Broadband, per-channel
 
 ptic('\n*** ss2serate: frequency domain (broadband), per-channel... ');
-pcbrerate = ss2serate(A,C,K,V,fs,'broadband','perchan',fres);
+pcbrerate = ss2serate(A,C,K,V,'perchan','broadband',fs,fres);
 ptoc;
 
 % Standard frequency bands, global
 
 ptic('\n*** ss2serate: frequency domain (standard bands), global... ');
-glsterate = ss2serate(A,C,K,V,fs,'stdx','allchans',fres);
+glsterate = ss2serate(A,C,K,V,'allchans','stdx',fs,fres);
 ptoc;
 
 % Standard frequency bands, per-channel
 
 ptic('\n*** ss2serate: frequency domain (standard bands), per-channel... ');
-pcsterate = ss2serate(A,C,K,V,fs,'stdx','perchan',fres);
+pcsterate = ss2serate(A,C,K,V,'perchan','stdx',fs,fres);
 ptoc;
 
 % Display time-domain and frequency band-limited entropy rates in a table
@@ -184,6 +188,8 @@ maxabserror  = max([glbrinterror,pcbrinterror,glstinterror,pcstinterror]);
 fprintf('\nSANITY CHECK: max. absolute integration error = %.1e\n\n',maxabserror);
 
 % Plot broadband spectral entropy rates
+
+freqs = (fs/2)*(0:fres)'/fres; % vector of frequencies up to Nyqvist
 
 fignum = fignum+1;
 figure(fignum); clf;
