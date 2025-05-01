@@ -22,10 +22,11 @@ if ischar(rois) && strcmpi(rois,'perchan') % each channel as an ROI
 
 	erates = zeros(nchans,1);
 	for i = 1:nchans
-		[~,VR,rep] = vardare(A,V,1:nchans,i); % reduced model residuals covariance
-		if sserror(rep,i), continue; end      % check DARE report, bail out on error
-		erates(i) = log(VR);                  % scalar, so no determinant required!
+		[~,VR,rep] = vardarea(A,V,i);    % reduced model residuals covariance
+		if sserror(rep,i), continue; end % check DARE report, bail out on error
+		erates(i) = log(VR);             % scalar, so no determinant required!
 	end
+
 else
 
 	assert(isvector(rois) && iscell(rois),'ROI spec must be ''allchans'', ''perchan'', or a cell vector');
@@ -33,8 +34,8 @@ else
 	erates = zeros(nrois,1);
 	for r = 1:nrois
 		i = rois{r};
-		[~,VR,rep] = vardare(A,V,1:nchans,i); % reduced model residuals covariance
-		if sserror(rep,r), continue; end      % check DARE report, bail out on error
+		[~,VR,rep] = vardarea(A,V,i);    % reduced model residuals covariance
+		if sserror(rep,r), continue; end % check DARE report, bail out on error
 		erates(r) = logdet(VR);
 	end
 
