@@ -129,19 +129,19 @@ end
 
 %%%%%%%%%%%%%%% Calculate entropy rates %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-return
-
 % Time domain, global
 
-ptic('\n*** ss_to_erate: time domain, global... ');
-glerate = ss_to_erate(A,C,K,V,'allchans');
+ptic('\n*** var_to_erate: time domain, global... ');
+glerate = var_to_erate(A,V,'allchans');
 ptoc;
 
 % Time domain, per-channel
 
-ptic('\n*** ss_to_erate: time domain, per-channel... ');
-pcerate = ss_to_erate(A,C,K,V,'perchan');
+ptic('\n*** var_to_erate: time domain, per-channel... ');
+pcerate = var_to_erate(A,V,'perchan');
 ptoc;
+
+return
 
 % Broadband, global
 
