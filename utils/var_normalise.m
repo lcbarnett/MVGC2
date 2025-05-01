@@ -1,13 +1,19 @@
-function [A,V] = var_studentise(A,V)
+function [A,V] = var_normalise(A,V)
 
-[n,n1,p] = size(A);
-assert(n1 == n,'VAR coefficients matrix has bad shape');
-[nn1,nn2] = size(V);
-assert(nn1 == nn2,'residuals covariance matrix not square');
-assert(nn1 == n  ,'residuals covariance matrix doesn''t match VAR coefficients matrix');
+% Transform VAR model so that process covariance matrix = I.
+%
+% NOTE: sub-process covariance matrices will also be identity.
 
-% Normalise VAR model by process variance
+% Construct the transformation
 
-G = var_to_autocov(A,V,0)
+G = var_to_autocov(A,V,0); % process covariance matrix
+U = chol(G,'lower');       % the inverse transformation
+T = inv(U);                % the transformation
 
-% TODO - normalisation should make G = I !!
+% Transform the VAR parameters
+
+for k = 1:size(A,3);
+	A(:,:,k) = T*A(:,:,k)*U;
+end
+L = T*chol(V,'lower');
+V = L*L';

@@ -1,14 +1,18 @@
 function [A,C,K,V] = ss_normalise(A,C,K,V)
 
-% Normalise ISS model by process variance
+% Transform ISS model so that process covariance matrix = I.
+%
+% NOTE: sub-process covariance matrices will also be identity.
 
-G = ss_to_autocov(A,C,K,V,0); % covariance matrix
+% Construct the transformation
 
-v = sqrt(diag(G));
-u = 1./v;
+G = ss_to_autocov(A,C,K,V,0); % process covariance matrix
+U = chol(G,'lower');          % the inverse transformation
+T = inv(U);                   % the transformation
 
-C = u.*C;
-K = K.*v';
-V = u.*V.*u';
+% Transform the ISS parameters
 
-% TODO - normalisation should make G = I !!
+C = T*C;
+K = K*U;
+L = T*chol(V,'lower');
+V = L*L';

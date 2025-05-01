@@ -1,4 +1,4 @@
-function erates = ss2erate(A,C,K,V,rois)
+function erates = ss_to_erate(A,C,K,V,rois)
 
 % Calculate time-domain entropy rates for SS model for specified ROIs.
 %

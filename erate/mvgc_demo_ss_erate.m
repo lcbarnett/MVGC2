@@ -108,8 +108,6 @@ if ernorm
 	[A,C,K,V] = ss_normalise(A,C,K,V);
 end
 
-return
-
 % Report information on the estimated SS, and check for errors.
 
 info = ss_info(A,C,K,V);
@@ -131,38 +129,38 @@ end
 
 % Time domain, global
 
-ptic('\n*** ss2erate: time domain, global... ');
-glerate = ss2erate(A,C,K,V,'allchans');
+ptic('\n*** ss_to_erate: time domain, global... ');
+glerate = ss_to_erate(A,C,K,V,'allchans');
 ptoc;
 
 % Time domain, per-channel
 
-ptic('\n*** ss2erate: time domain, per-channel... ');
-pcerate = ss2erate(A,C,K,V,'perchan');
+ptic('\n*** ss_to_erate: time domain, per-channel... ');
+pcerate = ss_to_erate(A,C,K,V,'perchan');
 ptoc;
 
 % Broadband, global
 
-ptic('\n*** ss2serate: frequency domain (broadband), global... ');
-glbrerate = ss2serate(A,C,K,V,'allchans','broadband',fs,fres);
+ptic('\n*** ss_to_serate: frequency domain (broadband), global... ');
+glbrerate = ss_to_serate(A,C,K,V,'allchans','broadband',fs,fres);
 ptoc;
 
 % Broadband, per-channel
 
-ptic('\n*** ss2serate: frequency domain (broadband), per-channel... ');
-pcbrerate = ss2serate(A,C,K,V,'perchan','broadband',fs,fres);
+ptic('\n*** ss_to_serate: frequency domain (broadband), per-channel... ');
+pcbrerate = ss_to_serate(A,C,K,V,'perchan','broadband',fs,fres);
 ptoc;
 
 % Standard frequency bands, global
 
-ptic('\n*** ss2serate: frequency domain (standard bands), global... ');
-glsterate = ss2serate(A,C,K,V,'allchans','stdx',fs,fres);
+ptic('\n*** ss_to_serate: frequency domain (standard bands), global... ');
+glsterate = ss_to_serate(A,C,K,V,'allchans','stdx',fs,fres);
 ptoc;
 
 % Standard frequency bands, per-channel
 
-ptic('\n*** ss2serate: frequency domain (standard bands), per-channel... ');
-pcsterate = ss2serate(A,C,K,V,'perchan','stdx',fs,fres);
+ptic('\n*** ss_to_serate: frequency domain (standard bands), per-channel... ');
+pcsterate = ss_to_serate(A,C,K,V,'perchan','stdx',fs,fres);
 ptoc;
 
 % Display time-domain and frequency band-limited entropy rates in a table
