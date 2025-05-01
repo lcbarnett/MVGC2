@@ -5,6 +5,7 @@
 if ~exist('empdata', 'var'), empdata  = false; end % set this to true if you have empirical time-series data (see below)
 if ~exist('varmosel','var'), varmosel = 'HQC'; end % VAR model order selection ('AIC', 'BIC', 'HQC', 'LRT', or supplied numerical value)
 if ~exist('varmomax','var'), varmomax = 48;    end % maximum model order for VAR model order selection
+if ~exist('regmode', 'var'), regmode  = 'OLS'; end % VAR regression mode: 'OLS' or 'LWR'
 if ~exist('ernorm',  'var'), ernorm   = false; end % calculate normalised entropy rates (this makes them scale-invariant - and always negative!)
 if ~exist('fres',    'var'), fres     = [];    end % frequency resolution for spectral entropy rates; leave empty for automatic calculation
 
@@ -35,6 +36,11 @@ if empdata % You have empirical time-series data
 	% fs = ???; % set appropriately
 
 else  % Generate test data from a random state-space model
+
+	% NOTE: Although the entropy rate calculations in this demo script are estimated via
+	% VAR modelling, we generate test data from a state-space model, as this is arguably
+	% more statistically veridical (specifically, in terms of a moving-average component)
+	% as a model for real-world empirical data.
 
 	% State-space test data generation parameters
 
@@ -76,7 +82,6 @@ end
 %%%%%%%%%%%%%%% Estimate SS model from data %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Calculate and plot VAR model order estimation criteria up to specified maximum model order.
-% NOTE: VAR model order is required for SS-SS estimation.
 
 ptic('\n*** tsdata_to_varmo... ');
 fignum = 1;
@@ -89,33 +94,32 @@ varmo = moselect(sprintf('VAR model order selection (max = %d)',varmomax),varmos
 assert(varmo > 0,'selected zero model order!');
 if varmo >= varmomax, fprintf(2,'*** WARNING: selected VAR maximum model order (may have been set too low)\n'); end
 
-% Estimate SS model using CCA SS-SS algorithm with SVC model order criterion
+% Estimate VAR model
 
-ptic('\n*** tsdata_to_ss... ');
-fignum = fignum+1;
-[A,C,K,V] = tsdata_to_ss(X,2*varmo,'SVC',fignum); % Bauer recommends 2 x VAR model order for past/future horizon
+ptic(['\n*** tsdata_to_var (' regmode ')... ']);
+[A,V] = tsdata_to_var(X,varmo,regmode);
 ptoc;
 
-% If the ernorm flag is set to true, then the ISS model is normalised by
+% If the ernorm flag is set to true, then the VAR model is normalised by
 % process covariance. In this case, error rates are equivalent to minus the
 % mutual information between the process and its own past, and as such are
 % scale-invariant (and non-positive).
 
 if ernorm
-	fprintf('\n*** Normalising ISS model by variance\n');
-	[A,C,K,V] = ss_normalise(A,C,K,V);
+	fprintf('\n*** Normalising VAR model by covariance\n');
+	[A,V] = var_normalise(A,V);
 end
 
-% Report information on the estimated SS, and check for errors.
+% Report information on the estimated VAR, and check for errors.
 
-info = ss_info(A,C,K,V);
-assert(~info.error,'SS model error(s) found - bailing out');
+info = var_info(A,V);
+assert(~info.error,'VAR model error(s) found - bailing out');
 
 %%%%%%%%%%%%%%% Frequency resolution for spectral entropy rates %%%%%%%%%%%%%%%%
 
 if isempty(fres)
-	ptic('*** ss2fres... ');
-	[fres,frierr,frpow2] = ss2fres(A,C,K,V);
+	ptic('*** var2fres... ');
+	[fres,frierr,frpow2] = var2fres(A,V);
 	ptoc;
 	fprintf('\n*** Using automatically-calculated frequency resolution %d = 2^%d (integration error = %.2e)\n',fres,frpow2,frierr);
 else
@@ -124,6 +128,8 @@ else
 end
 
 %%%%%%%%%%%%%%% Calculate entropy rates %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+return
 
 % Time domain, global
 
