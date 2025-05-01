@@ -80,13 +80,6 @@ else
 	nrois = length(rois);
 end
 
-% Find good spectral resolution
-
-if isempty(fres) % automatic calculation
-	fres = ss2fres(A,C,K,V,fastfres);
-	fprintf('Spectral resolution = %d\n',fres);
-end
-
 % Calculate CPSD
 
 S = ss_to_cpsd(A,C,K,V,fres);
