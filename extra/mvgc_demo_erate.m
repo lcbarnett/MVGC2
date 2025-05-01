@@ -108,6 +108,8 @@ if ernorm
 	[A,C,K,V] = ss_normalise(A,C,K,V);
 end
 
+return
+
 % Report information on the estimated SS, and check for errors.
 
 info = ss_info(A,C,K,V);
