@@ -141,30 +141,28 @@ ptic('\n*** var_to_erate: time domain, per-channel... ');
 pcerate = var_to_erate(A,V,'perchan');
 ptoc;
 
-return
-
 % Broadband, global
 
-ptic('\n*** ss_to_serate: frequency domain (broadband), global... ');
-glbrerate = ss_to_serate(A,C,K,V,'allchans','broadband',fs,fres);
+ptic('\n*** var_to_serate: frequency domain (broadband), global... ');
+glbrerate = var_to_serate(A,V,'allchans','broadband',fs,fres);
 ptoc;
 
 % Broadband, per-channel
 
-ptic('\n*** ss_to_serate: frequency domain (broadband), per-channel... ');
-pcbrerate = ss_to_serate(A,C,K,V,'perchan','broadband',fs,fres);
+ptic('\n*** var_to_serate: frequency domain (broadband), per-channel... ');
+pcbrerate = var_to_serate(A,V,'perchan','broadband',fs,fres);
 ptoc;
 
 % Standard frequency bands, global
 
-ptic('\n*** ss_to_serate: frequency domain (standard bands), global... ');
-glsterate = ss_to_serate(A,C,K,V,'allchans','stdx',fs,fres);
+ptic('\n*** var_to_serate: frequency domain (standard bands), global... ');
+glsterate = var_to_serate(A,V,'allchans','stdx',fs,fres);
 ptoc;
 
 % Standard frequency bands, per-channel
 
-ptic('\n*** ss_to_serate: frequency domain (standard bands), per-channel... ');
-pcsterate = ss_to_serate(A,C,K,V,'perchan','stdx',fs,fres);
+ptic('\n*** var_to_serate: frequency domain (standard bands), per-channel... ');
+pcsterate = var_to_serate(A,V,'perchan','stdx',fs,fres);
 ptoc;
 
 % Display time-domain and frequency band-limited entropy rates in a table
