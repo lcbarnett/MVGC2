@@ -23,12 +23,6 @@ if empdata % You have empirical time-series data
 	%
 	% if not epoched. The data should be in double-precision floating-point format.
 	% You will also need to set the variable 'fs' to the sampling rate for your data.
-	%
-	% Note that normalising your data by variance will affect entropy rates; see the
-	% 'ernorm' parameter above. If this parameter is set, the resulting entropy rates
-	% are actually mutual information between past and 1-step-ahead future, and as such
-	% are scale-invariant (a Good Thing). But they will also be non-positive, at least
-	% in the time domain. This is not a bug, it's a feature!
 
 	[nchans,nobs,nepochs] = size(X); % this is still okay if X is 2d (not epoched)
 
