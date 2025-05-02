@@ -173,7 +173,10 @@ fprintf('high-gamma    :  % 7.4f',glbrerate(6)); for i = 1:nchans, fprintf('    
 fprintf('------------------------');             for i = 1:nchans, fprintf('-----------');               end; fprintf('\n');
 
 % Sanity check: broadband/band-limited entropy rates (global and per-channel) should
-% integrate/sum respectively to the correpsonding time-domain entropy rates.
+% integrate/sum respectively to the corresponding time-domain entropy rates.
+%
+% Note that in both time and spectral domains, per-channel (or per-roi) entropy rates
+% will NOT in general sum or average to the corresponding global entropy rate!
 
 glbrinterror = abs(bandlimit(glbrerate)-glerate);
 pcbrinterror = maxabs(bandlimit(pcbrerate)-pcerate);
