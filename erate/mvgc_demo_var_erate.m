@@ -125,7 +125,7 @@ end
 % Time domain, global
 
 ptic('\n*** var_to_erate: time domain, global... ');
-glerate = var_to_erate(A,V,'allchans');
+glerate = var_to_erate(A,V,'global');
 ptoc;
 
 % Time domain, per-channel
@@ -137,7 +137,7 @@ ptoc;
 % Broadband, global
 
 ptic('\n*** var_to_serate: frequency domain (broadband), global... ');
-glbrerate = var_to_serate(A,V,'allchans','broadband',fs,fres);
+glbrerate = var_to_serate(A,V,'global','broadband',fs,fres);
 ptoc;
 
 % Broadband, per-channel
@@ -149,7 +149,7 @@ ptoc;
 % Standard frequency bands, global
 
 ptic('\n*** var_to_serate: frequency domain (standard bands), global... ');
-glsterate = var_to_serate(A,V,'allchans','stdx',fs,fres);
+glsterate = var_to_serate(A,V,'global','stdx',fs,fres);
 ptoc;
 
 % Standard frequency bands, per-channel

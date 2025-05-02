@@ -7,7 +7,7 @@ function erates = var_to_serate(A,V,rois,fbands,fs,fres)
 %
 % rois is a cell vector, where each cell is a vector of channel
 % numbers for the channels in an ROI. It may also take two special
-% values: 'allchans' treats the entire system as a single roi;
+% values: 'global' treats the entire system as a single roi;
 % 'perchan' returns entropy rates for each individual channel.
 %
 % fbands is either a column vector of frequency band boundaries,
@@ -67,7 +67,7 @@ end
 % Sort out ROIs
 
 nchans = size(V,1);
-if ischar(rois) && strcmpi(rois,'allchans')    % all channels as a single ROI
+if ischar(rois) && strcmpi(rois,'global')      % all channels as a single ROI
 	rois = {1:nchans};
 	perchan = false;
 	nrois = 1;
@@ -75,7 +75,7 @@ elseif ischar(rois) && strcmpi(rois,'perchan') % each channel as an ROI
 	perchan = true;
 	nrois = nchans;
 else
-	assert(isvector(rois) && iscell(rois),'ROI spec must be ''allchans'', ''perchan'', or a cell vector');
+	assert(isvector(rois) && iscell(rois),'ROI spec must be ''global'', ''perchan'', or a cell vector');
 	perchan = false;
 	nrois = length(rois);
 end
