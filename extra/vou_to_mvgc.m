@@ -11,7 +11,7 @@ function [F,err] = vou_to_mvgc(A,V,x,y)
 % y     - multi-index of source variable
 %
 % F     - Granger causality rate from y to x, conditional on other variables
-% err   - CARE error report number (zero if no error); run carerep(err) for eror message
+% err   - CARE error report number (zero if no error); run carerep(err) for error message
 %
 % REFERENCES:
 %
@@ -19,9 +19,9 @@ function [F,err] = vou_to_mvgc(A,V,x,y)
 % (2) L. Barnett and A. K. Seth (2016): Detectability of Granger causality for subsampled continuous-time neurophysiological processes, J. Neurosci. Methods 275.
 % (3) L. Barnett (2017): Granger causality rate for a vector Ornstein-Uhlenbeck process (working notes).
 %
-% (C) Lionel Barnett, May 2017
+% (C) Lionel Barnett, 2024
 
-[n, n1]  = size(A); assert(n1 == n, 'VOU coeffcicients matrix must be square');
+[n, n1]  = size(A); assert(n1 == n, 'VOU coefficients matrix must be square');
 [n1,n2]  = size(V); assert(n1 == n2,'VOU covariance matrix must be square');
                     assert(n1 == n, 'VOU covariance matrix must be same size as coefficients matrix');
 
