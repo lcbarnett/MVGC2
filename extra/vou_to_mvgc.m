@@ -1,9 +1,21 @@
 function [F,err] = vou_to_mvgc(A,V,x,y)
 
+% DESCRIPTION:
+%
 % Calculate time-domain conditional Granger causality rate for a vector
-% Ornstein-Uhlenbeck (VOU) process. Source/target/conditioning variables may be
-% multivariate. Uses a state-space method which involves solving an associated
-% continuous-time algebraic Riccati equation (CARE).
+% Ornstein-Uhlenbeck (VOU) process X(t):
+%
+%	dX(t) = AX(t)dt a dW(t)
+%
+% with autoregression matrix A, and W(t) a Wiener process with dW(t) ~ N(0,Vdt).
+% NOTE: A need not be stable (i.e., may have eigenvalues with nonnegative real
+% part).
+%
+% Source/target/conditioning variables may be multivariate. Uses a state-space
+% method which involves solving an associated continuous-time algebraic Riccati
+% equation (CARE).
+%
+% PARAMETERS:
 %
 % A     - VOU coefficients matrix
 % V     - VOU Wiener process covariance matrix
@@ -11,7 +23,17 @@ function [F,err] = vou_to_mvgc(A,V,x,y)
 % y     - multi-index of source variable
 %
 % F     - Granger causality rate from y to x, conditional on other variables
-% err   - CARE error report number (zero if no error); run carerep(err) for error message
+% err   - CARE error report number (zero if no error)
+%
+% RETURN VALUES:
+%
+% Possible CARE errors are (see 'icare' in the Matlab Control System Toolbox):
+%
+%	0 - No errors (unique solution is accurate)
+%	1 - Solution accuracy is poor
+%	2 - Solution not finite
+%	3 - No solution found (Hamiltonian spectrum has imaginery eigenvalues)
+%	4 - No solution found ("pencil" is singular)
 %
 % REFERENCES:
 %
@@ -42,7 +64,7 @@ if all(A(x,y) == 0)
 	return
 end
 
-if length(y) == 1 % P scalar, so CARE is simply a quadratic equation.
+if length(y) == 1 % P scalar, so CARE is a quadratic equation.
 
 	L = chol(V(r,r));
 	AOL = A(r,y)'/L;
@@ -55,7 +77,6 @@ if length(y) == 1 % P scalar, so CARE is simply a quadratic equation.
 
 else
 
-	F = NaN;
 	[P,~,~,rep] = icare(A(y,y)',A(r,y)',V(y,y),V(r,r),V(r,y)');
 	err = rep.Report;
 	if err ~= 0

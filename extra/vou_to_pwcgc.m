@@ -1,10 +1,22 @@
 function F = vou_to_pwcgc(A,V)
 
+% DESCRIPTION:
+%
 % Calculate time-domain pairwise-conditional Granger causality rates (Granger-
-% causal graph) for a vector Ornstein-Uhlenbeck (VOU) process.
+% causal graph) for a vector Ornstein-Uhlenbeck (VOU) process X(t):
+%
+%	dX(t) = AX(t)dt a dW(t)
+%
+% with autoregression matrix A, and W(t) a Wiener process with dW(t) ~ N(0,Vdt).
+% NOTE: A need not be stable (i.e., may have eigenvalues with nonnegative real
+% part).
+%
+% PARAMETERS:
 %
 % A     - VOU coefficients matrix
 % V     - VOU Wiener process covariance matrix
+%
+% RETURN VALUE:
 %
 % F     - pairwise-conditional Granger causality rates (Granger-causal graph)
 %
