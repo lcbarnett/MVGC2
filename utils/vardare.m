@@ -1,4 +1,4 @@
-function [KR,VR,rep,LR,PR] = vardare(VARA,V,y,r)
+function [K,V,rep,L,P] = vardare(VARA,VARV,y,r)
 
 % Solve DARE for SS model derived from reduced VAR (see var2iss)
 
@@ -10,7 +10,7 @@ pny1 = pny-ny;
 
 A = [reshape(VARA(y,y,:),ny,pny); eye(pny1) zeros(pny1,ny)];
 C = reshape(VARA(r,y,:),nr,pny);
-Q = [V(y,y) zeros(ny,pny1); zeros(pny1,pny)];
-S = [V(y,r); zeros(pny1,nr)];
-R = V(r,r);
-[KR,VR,rep,LR,PR] = mdare(A,C,Q,R,S);
+Q = [VARV(y,y) zeros(ny,pny1); zeros(pny1,pny)];
+S = [VARV(y,r); zeros(pny1,nr)];
+R = VARV(r,r);
+[K,V,rep,L,P] = mdare(A,C,Q,R,S);
