@@ -11,10 +11,24 @@
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+% Skip initialisation if already initialised (unless mvgc2_forceinit is set)
+
+global mvgc2_initialised
+if mvgc2_initialised
+	if exist('mvgc2_forceinit') && mvgc2_forceinit
+		fprintf('[MVGC2 startup] Already initialised - forcing re-initialisation\n');
+		mvgc2_initialised = false;
+		clear mvgc2_forceinit
+	else
+		fprintf('[MVGC2 startup] Already initialised - skipping\n');
+		return
+	end
+else
+	fprintf('[MVGC2 startup] Initialising\n');
+end
+
 global mvgc2_root
 mvgc2_root = fileparts(mfilename('fullpath')); % directory containing this file
-
-fprintf('[MVGC2 startup] Initialising MVGC2 toolbox\n');
 
 % Set configuration options: look first for config.m in this directory, else run default
 
@@ -166,7 +180,7 @@ end
 
 % Initialise rng to avoid predictability of sessions
 
-rng_seed(-1); % seed from /dev/urandom (Unix/Mac) else from clock (Windows)
+rng_seed(-1); % seed from /dev/urandom (Unix/Mac) else from date/time (Windows)
 
 fprintf('[MVGC2 startup] Random number generator initialised randomly!\n');
 
@@ -189,4 +203,5 @@ fprintf('[MVGC2 startup]\n');
 
 % Done
 
-fprintf('[MVGC2 startup] Initialisation complete (you may re-run ''startup'' at any time)\n');
+mvgc2_initialised = true;
+fprintf('[MVGC2 startup] Initialisation complete\n');
