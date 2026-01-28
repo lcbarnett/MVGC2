@@ -42,14 +42,12 @@ if nargin < 11 || isempty(nhist),     nhist     = 40;    end
 
 assert(nvars2 == nvars1 && nobs2 == nobs1,'Data series don''t match!');
 
-% Model condition 1 data and calculate sample GC
+% Model data under each condition and calculate sample GC
 
 [moaic,mobic,mohqc,molrt] = tsdata_to_varmo(X1,varmomax,varmoreg,[],[],[],verb);
 varmo1 = selvarmo(varmosel,moaic,mobic,mohqc,molrt);
 [A1,V1] = tsdata_to_var(X1,varmo1,'OLS');
 F1 = var_to_mvgc(A1,V1,x,y);
-
-% Model condition 1 data and calculate sample GC
 
 [moaic,mobic,mohqc,molrt] = tsdata_to_varmo(X2,varmomax,varmoreg,[],[],[],verb);
 varmo2 = selvarmo(varmosel,moaic,mobic,mohqc,molrt);
@@ -93,17 +91,15 @@ for k = 1:nperms
 	[A2,V2] = tsdata_to_var(X2p,varmo2,'OLS');
 	F2p = var_to_mvgc(A2,V2,x,y);
 
-	% The observed difference in permutation sample GCs
-
-	DFp(k) = F2p-F1p;
+	DFp(k) = F2p-F1p; % difference in GCs
 
 	if verb && rem(k,k10) == 0, fprintf('.'); end % progress indicator
 
 end
 
 if verb
-	tend = toc(tstart);
-	dur = seconds(tend);
+	esecs = toc(tstart); % elapsed time in seconds
+	dur = seconds(esecs);
 	dur.Format = 'hh:mm:ss.SS';
 	durstr = regexprep(char(dur),'^00:(00:)?','');
 	fprintf(' %s (hh:mm:ss.SS)\n',durstr);
