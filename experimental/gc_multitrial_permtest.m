@@ -1,10 +1,41 @@
-function [F1,F2,pval,varmo1,varmo2,DFp] = gc_multitrial_permtest(X1,X2,x,y,nperms,varmomax,varmosel,verb,fignum,nhist)
+function [F1,F2,pval,varmo1,varmo2,DFp] = gc_multitrial_permtest(X1,X2,x,y,nperms,varmomax,varmosel,varmoreg,verb,fignum,nhist)
 
 % A permutation test for multitrial data, for testing whether a GC value is different between conditions.
+%
+% NOTE: The null hypothesis here isn't, strictly speaking, that the GCs are different, but rather that
+% the data in the two conditions is drawn from a different distribution. In practice, however, it seems
+% unlikely that if the distributions are different that the GCs *won't* be different! Thus a rejection
+% of the null in this case still tells us something useful.
+%
+% This routine only handles VAR estimation; in principle, we can do the same for state-space estimation.
+%
+% INPUTS
+%
+% X1         - multitrial time series data for condition 1
+% X2         - multitrial time series data for condition 2
+% x          - vector of indices of target variable
+% y          - vector of indices of source variable (all remaining variables are conditioned on)
+% nperms     - number of samples for the empirical permutation null distribution
+% varmosel   - VAR model order selection criterion ('AIC', 'BIC', 'HQC', 'LRT')
+% varmomax   - maximum VAR model order for model order estimation
+% varmoreg   - regression method for model order estimation ('OLS' or 'LWR')
+% verb       - verbosity flag
+% fignum     - figure number for histogram display (set to 0 for no display)
+% nhist      - number of bins for the histogram display
+%
+% OUTPUTS
+%
+% F1         - GC estimate for condition 1
+% F2         - GC estimate for condition 2
+% pval       - p-value for 2-tailed test of F2-F1 against the permutation null distribution
+% varmo1     - VAR model order estimate for condition 1
+% varmo2     - VAR model order estimate for condition 2
+% DFp        - the empirical permutation null distribution
 
-if nargin <  8 || isempty(verb),      verb      = true;  end
-if nargin <  9 || isempty(fignum),    fignum    = 0;     end
-if nargin < 10 || isempty(nhist),     nhist     = 40;    end
+if nargin <  8 || isempty(varmoreg),  varmoreg  = 'OLS'; end
+if nargin <  9 || isempty(verb),      verb      = true;  end
+if nargin < 10 || isempty(fignum),    fignum    = 0;     end
+if nargin < 11 || isempty(nhist),     nhist     = 40;    end
 
 [nvars1,nobs1,ntrials1] = size(X1);
 [nvars2,nobs2,ntrials2] = size(X2);
@@ -13,14 +44,14 @@ assert(nvars2 == nvars1 && nobs2 == nobs1,'Data series don''t match!');
 
 % Model condition 1 data and calculate sample GC
 
-[moaic,mobic,mohqc,molrt] = tsdata_to_varmo(X1,varmomax,'OLS',[],[],[],1);
+[moaic,mobic,mohqc,molrt] = tsdata_to_varmo(X1,varmomax,varmoreg,[],[],[],verb);
 varmo1 = selvarmo(varmosel,moaic,mobic,mohqc,molrt);
 [A1,V1] = tsdata_to_var(X1,varmo1,'OLS');
 F1 = var_to_mvgc(A1,V1,x,y);
 
 % Model condition 1 data and calculate sample GC
 
-[moaic,mobic,mohqc,molrt] = tsdata_to_varmo(X2,varmomax,'OLS',[],[],[],1);
+[moaic,mobic,mohqc,molrt] = tsdata_to_varmo(X2,varmomax,varmoreg,[],[],[],verb);
 varmo2 = selvarmo(varmosel,moaic,mobic,mohqc,molrt);
 [A2,V2] = tsdata_to_var(X2,varmo2,'OLS');
 F2 = var_to_mvgc(A2,V2,x,y);
