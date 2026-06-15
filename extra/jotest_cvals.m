@@ -18,6 +18,7 @@ switch model
 	case 'H1',  cvtab = squeeze(CV.JCV(:,:,3,:));
 	case 'H*',  cvtab = squeeze(CV.JCV(:,:,4,:));
 	case 'H',   cvtab = squeeze(CV.JCV(:,:,5,:));
+	otherwise, error('Unknown cointegration model');
 end
 
 sigvals = [0.001 0.005:0.005:0.10 0.125:0.025:0.20 0.80:0.025:0.875 0.90:0.005:0.995 0.999];
