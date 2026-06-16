@@ -1,7 +1,13 @@
-function cval = jotest_cvals(n,model,alpha)
+function cval = jotest_cvals(n,cvtab,sigvals,alpha)
 
-% Critical values for Johansen tests for given model with n variables
-% at significance level alpha, for cointegration rank 0 .. n-1.
+% Critical values for Johansen tests with n variables at significance
+% level alpha, for cointegration rank 0 .. n-1.
+%
+% Call
+%
+%	[cvtab,sigvals] = jotest_cvtab(model)
+%
+% to get appropriate critical value tables and significance levels.
 %
 % NOTE 1: critical values only available for last 12 cointegration ranks;
 % lower values returned as NaNs.
@@ -9,19 +15,7 @@ function cval = jotest_cvals(n,model,alpha)
 % NOTE 2: to test the appropriate null hypotheses, the test statistics
 % (calculated by jotest_tsdata) must be scaled by effective sample size.
 
-if nargin < 3 || isempty(alpha), alpha = 0.05; end % significance level
-
-CV = load('Data_JCITest');
-switch model
-	case 'H2',  cvtab = squeeze(CV.JCV(:,:,1,:));
-	case 'H1*', cvtab = squeeze(CV.JCV(:,:,2,:));
-	case 'H1',  cvtab = squeeze(CV.JCV(:,:,3,:));
-	case 'H*',  cvtab = squeeze(CV.JCV(:,:,4,:));
-	case 'H',   cvtab = squeeze(CV.JCV(:,:,5,:));
-	otherwise, error('Unknown cointegration model');
-end
-
-sigvals = [0.001 0.005:0.005:0.10 0.125:0.025:0.20 0.80:0.025:0.875 0.90:0.005:0.995 0.999];
+if nargin < 4 || isempty(alpha), alpha = 0.05; end % significance level
 
 rmin = max(n-12,0);
 

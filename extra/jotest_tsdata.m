@@ -84,6 +84,7 @@ if any(lam < 0 | lam >= 1)
 	wflag = wflag+16;
 	if verb, fprintf(2,'WARNING: some eigenvalues out of range\n'); end
 end
+loglam = log(abs(1-lam));  % abs for rounding lambda ~1 (for consistency with Matlab 'jcitest')
 
 if normevs
 	[C11,cholp] = chol(S11);
@@ -96,13 +97,13 @@ if normevs
 		if verb, fprintf(2,'WARNING: S11 not positive-definite\n'); end
 	end
 end
-loglam = log(abs(1-lam));  % abs for rounding lambda ~1 (for consistency with Matlab 'jcitest')
 
 % Statistical results
 
-stats.ess =  Te; % effective sample size
-stats.evs =  lam;
-stats.A   =  S01*V;
-stats.B   =  V;
-stats.me  = -loglam;                         % scale by Te for inference
-stats.tr  = -flipud(cumsum(flipud(loglam))); % scale by Te for inference
+stats.wflag =  wflag;
+stats.ess   =  Te; % effective sample size
+stats.evs   =  lam;
+stats.A     =  S01*V;
+stats.B     =  V;
+stats.tr    = -flipud(cumsum(flipud(loglam))); % scale by Te for inference
+stats.me    = -loglam;                         % scale by Te for inference
